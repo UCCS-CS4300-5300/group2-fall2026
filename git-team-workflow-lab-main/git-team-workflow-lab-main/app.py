@@ -1,6 +1,6 @@
 PROJECT_INFO = {
     "name": "Trailhead",
-    "description": "Trailhead helps team cooridinate work and surface blockers.",
+    "description": "Trailhead is team project planning tool for student software teams that helps team coordinate work and surface blockers.",
 }
 
 

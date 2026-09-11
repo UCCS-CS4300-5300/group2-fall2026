@@ -4,7 +4,8 @@ from app import project_summary, risk_level
 def test_project_summary_contains_name_and_description():
     summary = project_summary()
     assert "Trailhead" in summary
-    assert "Trailhead helps team cooridinate work and surface blockers" in summary
+    assert "Trailhead is team project planning tool for student software teams that helps team coordinate work and surface blockers" in summary
+
 
 
 def test_risk_level_low_for_zero_blockers():
