@@ -49,3 +49,35 @@ class Player(Character):
 
 class Enemy(Character):
     pass
+
+
+class Encounter(models.Model):
+    name = models.CharField(max_length=120)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+
+    def __str__(self):
+        return self.name
+
+
+class EncounterCombatant(models.Model):
+    PLAYER = "player"
+    ENEMY = "enemy"
+    ROLE_CHOICES = [(PLAYER, "Player"), (ENEMY, "Enemy")]
+
+    encounter = models.ForeignKey(Encounter, on_delete=models.CASCADE, related_name="combatants")
+    name = models.CharField(max_length=120)
+    role = models.CharField(max_length=12, choices=ROLE_CHOICES)
+    hit_points = models.PositiveIntegerField()
+    armor_class = models.PositiveIntegerField(default=10)
+    attack_bonus = models.IntegerField(default=0)
+    damage = models.CharField(max_length=24, default="1d6")
+
+    class Meta:
+        ordering = ["role", "id"]
+
+    def __str__(self):
+        return self.name

@@ -1,0 +1,104 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>{{ encounter.name }} | Encounter Ledger</title>
+        <link rel="stylesheet" href="{% static 'core/styles.css' %}">
+    </head>
+    <body>
+        <header class="topbar">
+            <a class="brand" href="{% url 'core:home' %}">Encounter Ledger</a>
+            <a class="topbar-label back-link" href="{% url 'core:home' %}">&larr; All encounters</a>
+        </header>
+
+        <main class="detail-page">
+            <section class="detail-heading" aria-labelledby="encounter-title">
+                <p class="eyebrow">Encounter workspace</p>
+                <h1 id="encounter-title">{{ encounter.name }}</h1>
+                {% if encounter.notes %}
+                    <p class="detail-notes">{{ encounter.notes|linebreaksbr }}</p>
+                {% endif %}
+            </section>
+
+            <div class="battle-layout">
+                <section class="roster-panel" aria-labelledby="roster-title">
+                    <div class="section-heading">
+                        <div>
+                            <p class="eyebrow">The field</p>
+                            <h2 id="roster-title">Combatants <span class="count-mark">{{ encounter.combatants.count }}</span></h2>
+                        </div>
+                        <a class="text-action" href="#add-combatant">Add combatant <span aria-hidden="true">&#8595;</span></a>
+                    </div>
+
+                    <div class="combatant-list">
+                        {% for combatant in encounter.combatants.all %}
+                            <article class="combatant-card role-{{ combatant.role }}">
+                                <div class="combatant-heading">
+                                    <span class="role-label">{{ combatant.get_role_display }}</span>
+                                    <h3>{{ combatant.name }}</h3>
+                                </div>
+                                <dl class="stat-line">
+                                    <div><dt>HP</dt><dd>{{ combatant.hit_points }}</dd></div>
+                                    <div><dt>AC</dt><dd>{{ combatant.armor_class }}</dd></div>
+                                    <div><dt>Attack</dt><dd>{% if combatant.attack_bonus >= 0 %}+{% endif %}{{ combatant.attack_bonus }}</dd></div>
+                                    <div><dt>Damage</dt><dd>{{ combatant.damage }}</dd></div>
+                                </dl>
+                            </article>
+                        {% empty %}
+                            <div class="roster-empty">
+                                <span class="empty-mark" aria-hidden="true">+</span>
+                                <h3>The field is quiet</h3>
+                                <p>Add players and enemies to prepare this encounter.</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <section class="add-panel" id="add-combatant" aria-labelledby="add-title">
+                        <div class="section-heading add-heading">
+                            <div>
+                                <p class="eyebrow">Prepare the roster</p>
+                                <h2 id="add-title">Add a combatant</h2>
+                            </div>
+                        </div>
+                        <form method="post" class="combatant-form">
+                            {% csrf_token %}
+                            {{ form.non_field_errors }}
+                            <div class="field">{{ form.name.label_tag }}{{ form.name }}{{ form.name.errors }}</div>
+                            <div class="field">{{ form.role.label_tag }}{{ form.role }}{{ form.role.errors }}</div>
+                            <div class="field">{{ form.hit_points.label_tag }}{{ form.hit_points }}{{ form.hit_points.errors }}</div>
+                            <div class="field">{{ form.armor_class.label_tag }}{{ form.armor_class }}{{ form.armor_class.errors }}</div>
+                            <div class="field">{{ form.attack_bonus.label_tag }}{{ form.attack_bonus }}{{ form.attack_bonus.errors }}</div>
+                            <div class="field">{{ form.damage.label_tag }}{{ form.damage }}{{ form.damage.errors }}</div>
+                            <button type="submit">Add to encounter <span aria-hidden="true">&#43;</span></button>
+                        </form>
+                    </section>
+                </section>
+
+                <aside class="side-rail">
+                    <section class="rail-section" aria-labelledby="notes-title">
+                        <p class="eyebrow">Encounter brief</p>
+                        <h2 id="notes-title">DM notes</h2>
+                        {% if encounter.notes %}
+                            <p class="rail-copy">{{ encounter.notes|linebreaksbr }}</p>
+                        {% else %}
+                            <p class="rail-copy muted">No notes for this encounter.</p>
+                        {% endif %}
+                    </section>
+                    <section class="rail-section log-section" aria-labelledby="log-title">
+                        <p class="eyebrow">Session record</p>
+                        <h2 id="log-title">Combat log</h2>
+                        <p class="rail-copy muted">No actions recorded.</p>
+                    </section>
+                </aside>
+            </div>
+
+            <nav class="action-dock" aria-label="Encounter actions">
+                <span>Encounter setup</span>
+                <a href="#add-combatant">Add player or enemy <span aria-hidden="true">&#8594;</span></a>
+                <span class="dock-upcoming">Initiative and attacks are not active yet</span>
+            </nav>
+        </main>
+    </body>
+</html>

@@ -1,20 +1,76 @@
+{% load static %}
 <!doctype html>
-    <html>
-        <head>
-            <meta charset="utf-8">
-            <title>Project Starter</title>
-        </head>
-        <body>
-            <small>CS 4300 / 5300</small>
-            <h1>Your project starts here.</h1>
-            <p>Trace this generic feature, then evolve it into your inherited product.</p>
-        
-            {% for item in items %}
-            <h2>{{ item.title }}</h2>
-            <p>{{ item.description }}</p>
-            
-            {% empty %}
-            <p>No starter items yet. Replace this with your first vertical slice.</p>
-            {% endfor %}
-        </body>
-    </html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Encounter Ledger</title>
+        <link rel="stylesheet" href="{% static 'core/styles.css' %}">
+    </head>
+    <body>
+        <header class="topbar">
+            <a class="brand" href="{% url 'core:home' %}">Encounter Ledger</a>
+            <span class="topbar-label">DM campaign tools</span>
+        </header>
+
+        <main class="page-layout">
+            <section class="intro" aria-labelledby="page-title">
+                <p class="eyebrow">Campaign workspace</p>
+                <h1 id="page-title">Encounters</h1>
+                <p class="intro-copy">Keep each battle's setup and notes in one place.</p>
+                <p class="encounter-count">{{ encounters|length }} encounter{{ encounters|length|pluralize }}</p>
+            </section>
+
+            <div class="workspace">
+                <section class="create-panel" aria-labelledby="create-title">
+                    <p class="eyebrow">Start here</p>
+                    <h2 id="create-title">New encounter</h2>
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form.non_field_errors }}
+                        <div class="field">
+                            {{ form.name.label_tag }}
+                            {{ form.name }}
+                            {{ form.name.errors }}
+                        </div>
+                        <div class="field">
+                            {{ form.notes.label_tag }}
+                            {{ form.notes }}
+                            {{ form.notes.errors }}
+                        </div>
+                        <button type="submit">Create encounter <span aria-hidden="true">&#8594;</span></button>
+                    </form>
+                </section>
+
+                <section class="encounter-list" aria-labelledby="list-title">
+                    <div class="list-heading">
+                        <div>
+                            <p class="eyebrow">Your campaign</p>
+                            <h2 id="list-title">Saved encounters</h2>
+                        </div>
+                    </div>
+                    {% for encounter in encounters %}
+                        <article class="encounter-row">
+                            <div class="row-marker" aria-hidden="true">{{ forloop.counter|stringformat:"02d" }}</div>
+                            <div class="row-content">
+                                <h3><a class="encounter-link" href="{% url 'core:encounter_detail' encounter.id %}">{{ encounter.name }}</a></h3>
+                                {% if encounter.notes %}
+                                    <p>{{ encounter.notes|linebreaksbr }}</p>
+                                {% else %}
+                                    <p class="muted">No notes yet.</p>
+                                {% endif %}
+                            </div>
+                            <a class="open-link" href="{% url 'core:encounter_detail' encounter.id %}">Open workspace <span aria-hidden="true">&#8594;</span></a>
+                        </article>
+                    {% empty %}
+                        <div class="empty-state">
+                            <span class="empty-mark" aria-hidden="true">+</span>
+                            <h3>No encounters yet</h3>
+                            <p>Create your first encounter to begin organizing a battle.</p>
+                        </div>
+                    {% endfor %}
+                </section>
+            </div>
+        </main>
+    </body>
+</html>
