@@ -1,4 +1,4 @@
 from django.contrib import admin
-from .models import StarterItem
+from .models import Character
     
-admin.site.register(StarterItem)
+admin.site.register(Character)
