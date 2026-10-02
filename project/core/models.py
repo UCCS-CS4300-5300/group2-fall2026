@@ -33,6 +33,10 @@ class Character(models.Model):
     wisdom=models.IntegerField(default=0)
     charisma=models.IntegerField(default=0)
 
+    # Other info
+    max_hp=models.IntegerField(default=0)
+    remaining_hp=models.IntegerField(default=0)
+
     # idk if this function should go somewhere else ?
     @staticmethod
     def get_modifier(ability_score):
@@ -49,3 +53,10 @@ class Player(Character):
 
 class Enemy(Character):
     pass
+
+# Encounter class. Includes a list of multiple characters.
+class Encounter(models.Model):
+    name=models.CharField(max_length=120)
+    location=models.CharField(max_length=120)
+    description=models.CharField(blank=True)
+    combatants = models.ManyToManyField(Character, related_name="encounters")
