@@ -1,0 +1,19 @@
+<div
+    class="combatant {{char.type}}"
+    style="left: {{char.x_pos}}px; top: {{char.y_pos}}px;"
+>
+    <span class="init-badge">0</span>
+    <div class="d-flex justify-content-between align-items-baseline">
+        <h5 class="name h6 m-0">{{char.name}}</h5>
+        <span class="small text-secondary text-uppercase"
+            >{{char.type|default:"enemy"}}</span
+        >
+    </div>
+    <div class="hp-track my-2">
+        <div class="hp-fill" style="width: 100%"></div>
+    </div>
+    <div class="d-flex justify-content-between small">
+        <span>HP <strong>{{char.remaining_hp}}</strong> / {{char.max_hp}}</span>
+        <span>AC <strong>{{char.armor_class}}</strong></span>
+    </div>
+</div>
