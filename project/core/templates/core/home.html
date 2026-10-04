@@ -43,6 +43,10 @@
                             enemies.
                         </p>
                     </div>
+
+                    {% for char in char_list %}
+                        {% include "core/encounter_combatant_card.html" with char=char %}
+                    {% endfor %}
                 </div>
 
                 <div class="actions d-flex flex-wrap gap-2 align-items-center">
@@ -157,7 +161,7 @@
                                 <option value="enemy" selected>Enemy</option>
                             </select>
                         </div>
-                        <div class="col-4">
+                        <div class="col-6">
                             <label class="form-label">Max HP</label
                             ><input
                                 name="hp"
@@ -168,7 +172,7 @@
                                 required
                             />
                         </div>
-                        <div class="col-4">
+                        <div class="col-6">
                             <label class="form-label">Armor class</label
                             ><input
                                 name="ac"
@@ -177,34 +181,6 @@
                                 value="12"
                                 class="form-control"
                                 required
-                            />
-                        </div>
-                        <div class="col-4">
-                            <label class="form-label">Initiative bonus</label
-                            ><input
-                                name="init"
-                                type="number"
-                                value="0"
-                                class="form-control"
-                            />
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label">Attack bonus</label
-                            ><input
-                                name="atk"
-                                type="number"
-                                value="3"
-                                class="form-control"
-                            />
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label">Damage dice</label
-                            ><input
-                                name="dmg"
-                                value="1d6+1"
-                                pattern="\d+d\d+([+-]\d+)?"
-                                class="form-control"
-                                title="Example: 1d8+3"
                             />
                         </div>
                     </div>
@@ -216,6 +192,5 @@
         </div>
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-        <script src="../../static/core/js/main.js"></script>
     </body>
 </html>
