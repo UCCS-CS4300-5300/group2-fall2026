@@ -5,19 +5,38 @@ let attacking = false; // waiting for a target click
 let turnIdx = -1;
 let nextId = 1;
 
-const $ = (id) => document.getElementById(id);
-const board = $("board");
+const $ = (id) => document.getElementById(id); //Shorhand to get element from ID
+const board = $("board"); //First element with "board" id
 
 /* ---------- Dice ---------- */
+
+//Roll Dice function
 const d = (sides) => Math.floor(Math.random() * sides) + 1;
+
+//TODO: This function is AI slop. We should rewrite this to be more readable.
 function rollDamage(expr, crit) {
+    //Regex for damage calculations. i.e. 1d6+6
     const m = expr.match(/^(\d+)d(\d+)([+-]\d+)?$/);
-    if (!m) return { total: 1, text: "1" };
+
+    //No Regex for damage roll. Default to 1
+    if (!m) {
+        return { total: 1, text: "1" };
+    }
+
+    //Damage amount. Double for crit.
     let n = +m[1] * (crit ? 2 : 1),
         rolls = [];
-    for (let i = 0; i < n; i++) rolls.push(d(+m[2]));
+
+    //Roll each die and add to rolls list
+    for (let i = 0; i < n; i++) {
+        rolls.push(d(+m[2]));
+    }
+
+    //Todal damage done.
     const mod = +(m[3] || 0);
     const total = Math.max(0, rolls.reduce((a, b) => a + b, 0) + mod);
+
+    //Returns {total damage, text representation}
     return {
         total,
         text: `[${rolls.join("+")}]${mod ? (mod > 0 ? "+" : "") + mod : ""}`,
@@ -25,12 +44,16 @@ function rollDamage(expr, crit) {
 }
 
 /* ---------- Log ---------- */
+
+//Add something to the log.
 function log(html, cls = "") {
     const el = document.createElement("div");
     el.className = "log-entry " + cls;
     el.innerHTML = html;
     $("log").prepend(el);
 }
+
+//HTML escape stuff. No XSS on my freaking watch.
 const esc = (s) =>
     s.replace(
         /[&<>"]/g,
@@ -38,10 +61,17 @@ const esc = (s) =>
     );
 
 /* ---------- Rendering ---------- */
+
+//TODO: Also slop.
 function render() {
+    //Take all combatants and remove from DOM.
     board.querySelectorAll(".combatant").forEach((e) => e.remove());
+
+    //"emptyMsg" element not shown if there's combatants
     $("emptyMsg").style.display = combatants.length ? "none" : "";
+
     const turnId = combatants[turnIdx]?.id;
+
     combatants.forEach((c) => {
         const el = document.createElement("div");
         el.className =
@@ -77,6 +107,8 @@ function render() {
 
 /* ---------- Drag + click on cards ---------- */
 let drag = null;
+
+//Lets you drag cards with "combatant" class
 board.addEventListener("pointerdown", (e) => {
     const el = e.target.closest(".combatant");
     if (!el) return;
@@ -92,6 +124,7 @@ board.addEventListener("pointerdown", (e) => {
     };
     el.setPointerCapture(e.pointerId);
 });
+
 board.addEventListener("pointermove", (e) => {
     if (!drag) return;
     const dx = e.clientX - drag.sx,
@@ -104,6 +137,7 @@ board.addEventListener("pointermove", (e) => {
     drag.el.style.left = drag.c.x + "px";
     drag.el.style.top = drag.c.y + "px";
 });
+
 board.addEventListener("pointerup", () => {
     if (!drag) return;
     const { c, moved } = drag;
@@ -186,6 +220,7 @@ $("resetBtn").onclick = () => {
 };
 
 /* ---------- Add combatant ---------- */
+
 $("addForm").onsubmit = (e) => {
     e.preventDefault();
     const f = Object.fromEntries(new FormData(e.target));
