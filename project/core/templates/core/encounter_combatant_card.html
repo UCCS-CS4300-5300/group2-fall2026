@@ -1,0 +1,23 @@
+{% with char=entry.character %}
+<div
+    class="combatant {{entry.type}}"
+    style="left: {{entry.x_pos}}px; top: {{entry.y_pos}}px;"
+    data-id="{{ entry.id }}"
+    data-move-url="{% url 'core:move_combatant' entry.id %}"
+>
+    <span class="init-badge">0</span>
+    <div class="d-flex justify-content-between align-items-baseline">
+        <h5 class="name h6 m-0">{{char.name}}</h5>
+        <span class="small text-secondary text-uppercase"
+            >{{char.type|default:"enemy"}}</span
+        >
+    </div>
+    <div class="hp-track my-2">
+        <div class="hp-fill" style="width: 100%"></div>
+    </div>
+    <div class="d-flex justify-content-between small">
+        <span>HP <strong>{{entry.remaining_hp}}</strong> / {{char.max_hp}}</span>
+        <span>AC <strong>{{char.armor_class}}</strong></span>
+    </div>
+</div>
+{% endwith %}

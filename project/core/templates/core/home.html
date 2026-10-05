@@ -1,20 +1,200 @@
 <!doctype html>
-    <html>
-        <head>
-            <meta charset="utf-8">
-            <title>Project Starter</title>
-        </head>
-        <body>
-            <small>CS 4300 / 5300</small>
-            <h1>Your project starts here.</h1>
-            <p>Trace this generic feature, then evolve it into your inherited product.</p>
-        
-            {% for item in items %}
-            <h2>{{ item.title }}</h2>
-            <p>{{ item.description }}</p>
-            
-            {% empty %}
-            <p>No starter items yet. Replace this with your first vertical slice.</p>
-            {% endfor %}
-        </body>
-    </html>
+
+<html lang="en" data-bs-theme="dark">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Encounter Helper</title>
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Alegreya:wght@500;700&display=swap"
+            rel="stylesheet"
+        />
+        <link href="../../static/core/css/styles.css" rel="stylesheet" />
+    </head>
+
+    <body>
+        <div class="topbar d-flex align-items-center px-3 py-2 gap-3">
+            <h1 class="h4 m-0">Encounter Helper</h1>
+            <input
+                id="encounterName"
+                class="form-control form-control-sm w-auto"
+                value="Goblin Ambush"
+                aria-label="Encounter name"
+            />
+            <span id="turnInfo" class="ms-auto small text-secondary"
+                >Roll initiative to begin</span
+            >
+        </div>
+
+        <div class="main">
+            <div class="left">
+                <div class="board" id="board">
+                    {% if not items %}
+                    <div
+                        id="emptyMsg"
+                        class="position-absolute top-50 start-50 translate-middle text-secondary text-center"
+                    >
+                        <p class="mb-1">No combatants yet.</p>
+                        <p class="small">
+                            Use "Add combatant" below to create players and
+                            enemies.
+                        </p>
+                    </div>
+                    {% endif %}
+
+                    {% for item in items %}
+                        {% include "core/encounter_combatant_card.html" with entry=item %} 
+                    {% endfor %}
+                </div>
+
+                <div class="actions d-flex flex-wrap gap-2 align-items-center">
+                    <button
+                        class="btn btn-brass"
+                        data-bs-toggle="modal"
+                        data-bs-target="#addModal"
+                    >
+                        Add combatant
+                    </button>
+                    <button class="btn btn-outline-light" id="initBtn">
+                        Roll initiative
+                    </button>
+                    <button class="btn btn-danger" id="attackBtn" disabled>
+                        Attack
+                    </button>
+                    <button class="btn btn-outline-light" id="nextBtn" disabled>
+                        Next turn
+                    </button>
+                    <span id="hint" class="small text-secondary ms-2"></span>
+                    <button
+                        class="btn btn-sm btn-outline-secondary ms-auto"
+                        id="resetBtn"
+                    >
+                        Clear encounter
+                    </button>
+                </div>
+            </div>
+
+            <aside class="side">
+                <ul class="nav nav-tabs px-2 pt-2" role="tablist">
+                    <li class="nav-item">
+                        <button
+                            class="nav-link active"
+                            data-bs-toggle="tab"
+                            data-bs-target="#logTab"
+                        >
+                            Log
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button
+                            class="nav-link"
+                            data-bs-toggle="tab"
+                            data-bs-target="#questTab"
+                        >
+                            Quests
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button
+                            class="nav-link"
+                            data-bs-toggle="tab"
+                            data-bs-target="#aiTab"
+                        >
+                            AI DM
+                        </button>
+                    </li>
+                </ul>
+                <div class="tab-content side-body">
+                    <div class="tab-pane fade show active" id="logTab">
+                        <div id="log"></div>
+                    </div>
+                    <div class="tab-pane fade" id="questTab">
+                        <form id="questForm" class="input-group mb-3">
+                            <input
+                                id="questInput"
+                                class="form-control"
+                                placeholder="New quest or note"
+                                required
+                            />
+                            <button class="btn btn-brass">Add</button>
+                        </form>
+                        <ul id="quests" class="list-group"></ul>
+                    </div>
+                    <div class="tab-pane fade" id="aiTab">
+                        <p class="text-secondary">
+                            The AI DM chat will go here in a later sprint.
+                        </p>
+                        <input
+                            class="form-control"
+                            placeholder="Ask the DM..."
+                            disabled
+                        />
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Add combatant modal -->
+        <div class="modal fade" id="addModal" tabindex="-1">
+            <div class="modal-dialog">
+                <form class="modal-content" id="addForm" method="post" action="{% url 'core:add_combatant' %}">
+                    {% csrf_token %}
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add combatant</h5>
+                        <button
+                            type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"
+                        ></button>
+                    </div>
+                    <div class="modal-body row g-3">
+                        <div class="col-8">
+                            <label class="form-label">Name</label
+                            ><input name="name" class="form-control" required />
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label">Type</label>
+                            <select name="type" class="form-select">
+                                <option value="player">Player</option>
+                                <option value="enemy" selected>Enemy</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Max HP</label
+                            ><input
+                                name="max_hp"
+                                type="number"
+                                min="1"
+                                value="10"
+                                class="form-control"
+                                required
+                            />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Armor class</label
+                            ><input
+                                name="armor_class"
+                                type="number"
+                                min="1"
+                                value="12"
+                                class="form-control"
+                                required
+                            />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-brass">Add to encounter</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script type="module" src="../../static/core/js/main.js"></script>
+    </body>
+</html>
