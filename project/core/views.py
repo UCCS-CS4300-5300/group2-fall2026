@@ -9,3 +9,7 @@ def home(request):
             "items": None
         }
     )
+
+# View to add combatant to encounter.
+def add_combatant(request):
+    pass
