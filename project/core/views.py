@@ -9,9 +9,6 @@ from .models import CharacterEncounter
 
 from .forms import CharacterForm
 
-# Single encounter just for testing for Sprint 1 since we only have 1 encounter right now
-test_encounter = Encounter(name="test",)
-
 def home(request):
     return render(
         request,
@@ -31,7 +28,7 @@ def add_combatant(request):
 
     # Atomically add the "CharacterEncounter linking table"
     with transaction.atomic():
-        encounter = test_encounter # This is a placeholder since we only have 1 encounter
+        encounter, _ = Encounter.objects.get_or_create(name="test_encounter") # This is a placeholder since we only have 1 encounter
         character = form.save()
         entry = CharacterEncounter.objects.create(
             character=character,
