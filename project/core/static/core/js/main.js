@@ -1,7 +1,9 @@
 import { draggableCharacterCard, savePositionOnMove } from "./drag.js";
+import { setupDiceRoller } from "./dice.js";
 
 draggableCharacterCard() //Make character cards draggable
 savePositionOnMove() //Make sure dragged cards position get saved
+setupDiceRoller()
 
 //Logic for adding new combatant with the "addForm" element on the home template.
 const addForm = document.getElementById("addForm");
