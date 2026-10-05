@@ -10,11 +10,12 @@ from .models import CharacterEncounter
 from .forms import CharacterForm
 
 def home(request):
+    entries = CharacterEncounter.objects.all()
     return render(
         request,
         "core/home.html",
         {
-            "items": None
+            "items": entries
         }
     )
 
