@@ -33,6 +33,9 @@ adding combatants, saved card positions, and separate character state between
 encounters. Random rolls are patched in the tests so the expected results are
 repeatable.
 
+GitHub Actions runs the tests, Django checks, and migrations on pull requests
+and pushes to main. The workflow is in `.github/workflows/tests.yml`.
+
 ## Current limits
 
 The dashboard still uses one placeholder encounter. The player/enemy selector
