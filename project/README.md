@@ -14,6 +14,10 @@ python manage.py runserver
 Run these commands from the `project/` directory. Open the local address printed
 by `runserver`.
 
+For Sprint 1, use a fresh checkout and database. Earlier migration files were
+changed, so upgrading an older local database is not supported yet. Keep any
+older database as a backup; do not delete it to get the app running.
+
 ## Dice roller
 
 Choose d4, d6, d8, d10, d12, or d20 and roll between 1 and 20 dice. The server
