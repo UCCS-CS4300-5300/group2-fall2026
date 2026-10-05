@@ -110,6 +110,24 @@
                 </ul>
                 <div class="tab-content side-body">
                     <div class="tab-pane fade show active" id="logTab">
+                        <form id="diceForm" method="post" action="{% url 'core:roll_dice' %}" class="mb-3">
+                            {% csrf_token %}
+                            <h2 class="h6">Dice roller</h2>
+                            <div class="row g-2 mb-2">
+                                <div class="col-5">
+                                    <label for="{{ dice_form.sides.id_for_label }}" class="form-label">Die</label>
+                                    {{ dice_form.sides }}
+                                </div>
+                                <div class="col-7">
+                                    <label for="{{ dice_form.count.id_for_label }}" class="form-label">Number of dice</label>
+                                    {{ dice_form.count }}
+                                </div>
+                            </div>
+                            <button class="btn btn-brass" type="submit">Roll dice</button>
+                            <p id="diceResult" class="small mt-2 mb-0" role="status" aria-live="polite"></p>
+                            <p id="diceError" class="small text-danger mt-2 mb-0" role="alert"></p>
+                        </form>
+                        <p class="small text-secondary">Roll history clears when you reload. Rolls do not change HP or initiative.</p>
                         <div id="log"></div>
                     </div>
                     <div class="tab-pane fade" id="questTab">

@@ -5,11 +5,12 @@ from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST, require_http_methods
 
 import json
+import random
 
 from .models import Encounter
 from .models import CharacterEncounter
 
-from .forms import CharacterForm
+from .forms import CharacterForm, DiceRollForm
 
 def home(request):
     entries = CharacterEncounter.objects.all()
@@ -17,9 +18,28 @@ def home(request):
         request,
         "core/home.html",
         {
-            "items": entries
+            "items": entries,
+            "dice_form": DiceRollForm(),
         }
     )
+
+
+@require_POST
+def roll_dice(request):
+    form = DiceRollForm(request.POST)
+    if not form.is_valid():
+        return JsonResponse(form.errors, status=400)
+
+    sides = form.cleaned_data["sides"]
+    count = form.cleaned_data["count"]
+    rolls = [random.randint(1, sides) for _ in range(count)]
+    return JsonResponse({
+        "sides": sides,
+        "count": count,
+        "rolls": rolls,
+        "total": sum(rolls),
+    })
+
 
 # View to add combatant to encounter.
 @require_POST
