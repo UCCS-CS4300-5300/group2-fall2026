@@ -44,8 +44,8 @@
                         </p>
                     </div>
 
-                    {% for char in char_list %}
-                        {% include "core/encounter_combatant_card.html" with char=char %} 
+                    {% for item in items %}
+                        {% include "core/encounter_combatant_card.html" with entry=item %} 
                     {% endfor %}
                 </div>
 
