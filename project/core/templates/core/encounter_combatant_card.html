@@ -2,6 +2,8 @@
 <div
     class="combatant {{entry.type}}"
     style="left: {{entry.x_pos}}px; top: {{entry.y_pos}}px;"
+    data-id="{{ entry.id }}"
+    data-move-url="{% url 'core:move_combatant' entry.id %}"
 >
     <span class="init-badge">0</span>
     <div class="d-flex justify-content-between align-items-baseline">

@@ -1,8 +1,10 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.db import transaction
 from django.template.loader import render_to_string
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_http_methods
+
+import json
 
 from .models import Encounter
 from .models import CharacterEncounter
@@ -40,3 +42,20 @@ def add_combatant(request):
     # Get HTML response for JavaScript
     html = render_to_string("core/encounter_combatant_card.html", {"entry":entry})
     return HttpResponse(html)
+
+# View to move the location of a combatant/CharacterEncounter so the page "remembers" their last location
+@require_http_methods(["PATCH"])
+def move_combatant(request, entry_id):
+    entry = get_object_or_404(CharacterEncounter, pk=entry_id)
+
+    try:
+        data = json.loads(request.body)
+        x = int(data["x"])
+        y = int(data["y"])
+    except (ValueError, KeyError, TypeError):
+        return JsonResponse({"error": "x and y are required integers"}, status=400)
+
+    entry.x_pos = x
+    entry.y_pos = y
+    entry.save(update_fields=["x_pos", "y_pos"])
+    return JsonResponse({"x": x, "y": y})

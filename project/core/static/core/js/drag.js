@@ -14,7 +14,6 @@ export function draggableCharacterCard() {
         if (!card) return;
 
         // Card position relative to the board's scrollable content area
-        const boardRect = board.getBoundingClientRect();
         const cardRect = card.getBoundingClientRect();
 
         active = {
@@ -88,4 +87,28 @@ export function draggableCharacterCard() {
 
     board.addEventListener("pointerup", endDrag);
     board.addEventListener("pointercancel", endDrag);
+}
+
+export function savePositionOnMove() {
+    const board = document.getElementById("board");
+    if (!board) return;
+
+    board.addEventListener("combatant:moved", async (e) => {
+        const card = e.target.closest(".combatant");
+        const token = document.querySelector("[name=csrfmiddlewaretoken]").value;
+
+        try {
+            const res = await fetch(card.dataset.moveUrl, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": token,
+                },
+                body: JSON.stringify(e.detail), // { x, y }
+            });
+            if (!res.ok) console.error("Failed to save position", res.status);
+        } catch (err) {
+            console.error("Network error saving position", err);
+        }
+    });
 }

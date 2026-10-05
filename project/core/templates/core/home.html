@@ -33,6 +33,7 @@
         <div class="main">
             <div class="left">
                 <div class="board" id="board">
+                    {% if not items %}
                     <div
                         id="emptyMsg"
                         class="position-absolute top-50 start-50 translate-middle text-secondary text-center"
@@ -43,6 +44,7 @@
                             enemies.
                         </p>
                     </div>
+                    {% endif %}
 
                     {% for item in items %}
                         {% include "core/encounter_combatant_card.html" with entry=item %} 
