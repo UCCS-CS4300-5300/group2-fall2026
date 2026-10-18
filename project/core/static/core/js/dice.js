@@ -1,3 +1,20 @@
+// Attacks and initiative can use this without changing the log or character stats.
+export function rollDice(sides, count) {
+    if (![4, 6, 8, 10, 12, 20].includes(sides)) {
+        throw new Error("Choose a d4, d6, d8, d10, d12, or d20.");
+    }
+    if (!Number.isInteger(count) || count < 1 || count > 20) {
+        throw new Error("Enter a whole number of dice from 1 to 20.");
+    }
+
+    const rolls = [];
+    for (let i = 0; i < count; i++) {
+        rolls.push(Math.floor(Math.random() * sides) + 1);
+    }
+    const total = rolls.reduce((sum, roll) => sum + roll, 0);
+    return { sides, count, rolls, total };
+}
+
 export function setupDiceRoller() {
     const form = document.getElementById("diceForm");
     if (!form) return;
@@ -7,29 +24,15 @@ export function setupDiceRoller() {
     const error = document.getElementById("diceError");
     const log = document.getElementById("log");
 
-    form.addEventListener("submit", async (event) => {
+    form.addEventListener("submit", (event) => {
         event.preventDefault();
-        button.disabled = true;
         result.textContent = "";
         error.textContent = "";
 
         try {
-            const response = await fetch(form.action, {
-                method: "POST",
-                body: new FormData(form),
-            });
-
-            if (!response.ok) {
-                if (response.status === 400) {
-                    const errors = await response.json();
-                    error.textContent = Object.values(errors).flat().join(" ");
-                } else {
-                    error.textContent = "Couldn't roll the dice. Try again or reload the page.";
-                }
-                return;
-            }
-
-            const roll = await response.json();
+            const sides = Number(form.elements.namedItem("sides").value);
+            const count = Number(form.elements.namedItem("count").value);
+            const roll = rollDice(sides, count);
             const message = `${roll.count}d${roll.sides}: ${roll.rolls.join(" + ")} = ${roll.total}`;
             result.textContent = message;
 
@@ -38,9 +41,8 @@ export function setupDiceRoller() {
             entry.textContent = message;
             log.prepend(entry);
         } catch (err) {
-            error.textContent = "Couldn't reach the server. Check your connection and try again.";
-        } finally {
-            button.disabled = false;
+            error.textContent = err.message;
         }
     });
+    button.disabled = false;
 }

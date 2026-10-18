@@ -1,89 +1,70 @@
-from unittest.mock import call, patch
+from html.parser import HTMLParser
 
 import pytest
 from django.test import Client
 from django.urls import reverse
 
-
-@pytest.mark.parametrize("sides", [4, 6, 8, 10, 12, 20])
-def test_roll_each_die_keeps_individual_results_and_total(client, sides):
-    with patch("core.views.random.randint", side_effect=[1, sides]) as randint:
-        response = client.post(reverse("core:roll_dice"), {"sides": sides, "count": 2})
-
-    assert response.status_code == 200
-    assert response.json() == {
-        "sides": sides,
-        "count": 2,
-        "rolls": [1, sides],
-        "total": 1 + sides,
-    }
-    assert randint.call_args_list == [call(1, sides), call(1, sides)]
+from .models import CharacterEncounter
 
 
-@pytest.mark.parametrize("count", [1, 20])
-def test_roll_accepts_minimum_and_maximum_count(client, count):
-    with patch("core.views.random.randint", return_value=3) as randint:
-        response = client.post(reverse("core:roll_dice"), {"sides": 6, "count": count})
+class PageForms(HTMLParser):
+    def __init__(self, html):
+        super().__init__()
+        self.forms = {}
+        self.current = None
+        self.feed(html)
 
-    assert response.status_code == 200
-    result = response.json()
-    assert result["count"] == count
-    assert result["rolls"] == [3] * count
-    assert result["total"] == 3 * count
-    assert randint.call_count == count
+    def handle_starttag(self, tag, attrs):
+        attrs = dict(attrs)
+        if tag == "form":
+            self.current = []
+            self.forms[attrs["id"]] = self.current
+        if self.current is not None:
+            self.current.append((tag, attrs))
 
-
-@pytest.mark.parametrize(
-    "data, field",
-    [
-        ({"sides": 3, "count": 1}, "sides"),
-        ({"sides": "six", "count": 1}, "sides"),
-        ({"sides": "6.5", "count": 1}, "sides"),
-        ({"sides": 6, "count": 0}, "count"),
-        ({"sides": 6, "count": 21}, "count"),
-        ({"sides": 6, "count": "two"}, "count"),
-        ({"sides": 6, "count": "1.5"}, "count"),
-        ({"count": 1}, "sides"),
-        ({"sides": 6}, "count"),
-    ],
-)
-def test_invalid_dice_input_does_not_roll(client, data, field):
-    with patch("core.views.random.randint") as randint:
-        response = client.post(reverse("core:roll_dice"), data)
-
-    assert response.status_code == 400
-    assert field in response.json()
-    randint.assert_not_called()
-
-
-def test_dice_roll_requires_post(client):
-    response = client.get(reverse("core:roll_dice"))
-
-    assert response.status_code == 405
+    def handle_endtag(self, tag):
+        if tag == "form":
+            self.current = None
 
 
 @pytest.mark.django_db
-def test_home_includes_dice_form(client):
+def test_home_has_dice_choices_and_count_limits(client):
     response = client.get(reverse("core:home"))
 
     assert response.status_code == 200
-    assert not response.context["dice_form"].is_bound
-    assert b'name="sides"' in response.content
-    assert b'name="count"' in response.content
+    form = PageForms(response.content.decode()).forms["diceForm"]
+    options = [attrs for tag, attrs in form if tag == "option"]
+    assert [option["value"] for option in options] == ["4", "6", "8", "10", "12", "20"]
+    assert [option["value"] for option in options if "selected" in option] == ["20"]
+    count = next(attrs for tag, attrs in form if attrs.get("name") == "count")
+    assert count["type"] == "number"
+    assert count["value"] == count["min"] == count["step"] == "1"
+    assert count["max"] == "20"
+    assert "required" in count
+    ids = {attrs.get("id") for tag, attrs in form}
+    assert {"id_sides", "id_count", "diceResult", "diceError"} <= ids
 
 
 @pytest.mark.django_db
-def test_dice_roll_requires_csrf_token():
+def test_combatant_changes_still_require_the_token_from_the_page():
     client = Client(enforce_csrf_checks=True)
-    url = reverse("core:roll_dice")
-    data = {"sides": 6, "count": 1}
+    add_url = reverse("core:add_combatant")
+    data = {"name": "Goblin", "max_hp": 12, "armor_class": 13}
 
-    assert client.post(url, data).status_code == 403
-
-    client.get(reverse("core:home"))
-    token = client.cookies["csrftoken"].value
-    with patch("core.views.random.randint", return_value=4):
-        response = client.post(url, data, HTTP_X_CSRFTOKEN=token)
-
+    assert client.post(add_url, data).status_code == 403
+    response = client.get(reverse("core:home"))
+    form = PageForms(response.content.decode()).forms["addForm"]
+    token = next(attrs["value"] for tag, attrs in form if attrs.get("name") == "csrfmiddlewaretoken")
+    response = client.post(add_url, {**data, "csrfmiddlewaretoken": token})
     assert response.status_code == 200
-    assert response.json()["rolls"] == [4]
+
+    entry = CharacterEncounter.objects.get()
+    move_url = reverse("core:move_combatant", args=[entry.pk])
+    position = {"x": 120, "y": 160}
+    assert client.patch(move_url, position, content_type="application/json").status_code == 403
+    response = client.patch(
+        move_url, position, content_type="application/json", HTTP_X_CSRFTOKEN=token
+    )
+    assert response.status_code == 200
+    entry.refresh_from_db()
+    assert (entry.x_pos, entry.y_pos) == (120, 160)

@@ -20,24 +20,29 @@ older database as a backup; do not delete it to get the app running.
 
 ## Dice roller
 
-Choose d4, d6, d8, d10, d12, or d20 and roll between 1 and 20 dice. The server
-checks the inputs and returns each roll plus the total. Results appear in the
-Log tab. Roll history only lasts until the page is reloaded; it does not change
-HP or initiative.
+Choose d4, d6, d8, d10, d12, or d20 and roll between 1 and 20 dice. JavaScript
+checks the inputs and rolls the dice in the browser, without a server request.
+Results appear in the Log tab. Roll history only lasts until the page is reloaded;
+it does not change HP or initiative.
+
+Other frontend features can import `rollDice(sides, count)` from `dice.js`.
+It takes numbers and returns `{ sides, count, rolls, total }`. It does not update
+the page or save character data. The old `/dice/roll/` endpoint is removed.
 
 ## Tests
 
 ```bash
 python -m pytest -q
 python manage.py check
+npm test
 ```
 
-The tests cover dice choices and totals, invalid inputs, request methods, CSRF,
-adding combatants, saved card positions, and separate character state between
-encounters. Random rolls are patched in the tests so the expected results are
-repeatable.
+Use Node.js 24 for `npm test`; there are no npm packages to install. The JavaScript
+tests cover dice choices, limits, totals, and invalid inputs with fixed random
+values. The Django tests cover the dice controls, CSRF, adding combatants, saved
+card positions, and separate character state between encounters.
 
-GitHub Actions runs the tests, Django checks, and migrations on pull requests
+GitHub Actions runs both test suites, Django checks, and migrations on pull requests
 and pushes to main. The workflow is in `.github/workflows/tests.yml`.
 
 ## Current limits
