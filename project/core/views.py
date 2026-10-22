@@ -7,8 +7,10 @@ from django.views.decorators.http import require_POST, require_http_methods
 import json
 import random
 
+from .forms import QuestForm
 from .models import Encounter
 from .models import CharacterEncounter
+from .models import Quest
 
 from .forms import CharacterForm, DiceRollForm
 
@@ -18,6 +20,7 @@ def home(request):
         request,
         "core/home.html",
         {
+            "quests": Quest.objects.filter(encounter__name="test_encounter").order_by("id"),
             "items": entries,
             "dice_form": DiceRollForm(),
         }
@@ -79,3 +82,38 @@ def move_combatant(request, entry_id):
     entry.y_pos = y
     entry.save(update_fields=["x_pos", "y_pos"])
     return JsonResponse({"x": x, "y": y})
+
+
+@require_POST
+def add_quest(request):
+    form = QuestForm(request.POST)
+    if not form.is_valid():
+        return JsonResponse(form.errors, status=400)
+
+    with transaction.atomic():
+        encounter, _ = Encounter.objects.get_or_create(name="test_encounter")
+        quest = form.save(commit=False)
+        quest.encounter = encounter
+        quest.save()
+
+    html = render_to_string("core/quest_item.html", {"quest": quest})
+    return HttpResponse(html, status=201)
+
+
+@require_http_methods(["PATCH", "DELETE"])
+def quest_detail(request, quest_id):
+    quest = get_object_or_404(Quest, pk=quest_id, encounter__name="test_encounter")
+    if request.method == "DELETE":
+        quest.delete()
+        return HttpResponse(status=204)
+
+    try:
+        data = json.loads(request.body)
+    except ValueError:
+        return JsonResponse({"error": "Send completed as true or false."}, status=400)
+    if not isinstance(data, dict) or not isinstance(data.get("completed"), bool):
+        return JsonResponse({"error": "Send completed as true or false."}, status=400)
+
+    quest.completed = data["completed"]
+    quest.save(update_fields=["completed"])
+    return JsonResponse({"completed": quest.completed})

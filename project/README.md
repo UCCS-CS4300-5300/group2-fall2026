@@ -1,7 +1,7 @@
 # Encounter Helper
 
 A small Django dashboard for setting up a D&D encounter. You can add combatants,
-move their cards around, and roll dice from the Log tab.
+move their cards around, roll dice from the Log tab, and save quests or notes.
 
 ## Quick start
 ```bash
@@ -17,6 +17,16 @@ by `runserver`.
 For Sprint 1, use a fresh checkout and database. Earlier migration files were
 changed, so upgrading an older local database is not supported yet. Keep any
 older database as a backup; do not delete it to get the app running.
+
+## Quests and notes
+
+Use the Quests tab to add a quest or note, check it off, reopen it, or delete it.
+Text is limited to 500 characters. Entries and completion status are saved in
+the database with the current placeholder encounter, so they survive a reload.
+They do not change combatant stats or dice rolls.
+
+Run `python manage.py migrate` after pulling this change to add the quest table.
+The Django tests cover saving, completion, deletion, validation, and CSRF.
 
 ## Dice roller
 
@@ -44,7 +54,7 @@ and pushes to main. The workflow is in `.github/workflows/tests.yml`.
 
 The dashboard still uses one placeholder encounter. The player/enemy selector
 does not change the saved character type yet. Initiative, attacks, next turn,
-clear encounter, quests, and AI chat are not implemented. Character cards and
+clear encounter, and AI chat are not implemented. Character cards and
 their positions are saved in the local SQLite database. Bootstrap loads from a
 CDN, so the styling and modal need an internet connection.
 

@@ -131,16 +131,28 @@
                         <div id="log"></div>
                     </div>
                     <div class="tab-pane fade" id="questTab">
-                        <form id="questForm" class="input-group mb-3">
+                        <form id="questForm" class="input-group mb-3" method="post" action="{% url 'core:add_quest' %}">
+                            {% csrf_token %}
                             <input
                                 id="questInput"
+                                name="text"
                                 class="form-control"
                                 placeholder="New quest or note"
+                                aria-label="New quest or note"
+                                maxlength="500"
                                 required
                             />
-                            <button class="btn btn-brass">Add</button>
+                            <button type="submit" class="btn btn-brass">Add</button>
                         </form>
-                        <ul id="quests" class="list-group"></ul>
+                        <p class="small text-secondary">Quests and notes are saved with this encounter. Check one off when it's done.</p>
+                        <p id="questError" class="small text-danger" role="alert"></p>
+                        <p id="questEmpty" class="small text-secondary" {% if quests %}hidden{% endif %}>No quests or notes yet.</p>
+                        <ul id="quests" class="list-group">
+                            {% for quest in quests %}
+                                {% include "core/quest_item.html" %}
+                            {% endfor %}
+                        </ul>
+                        <noscript><p class="small text-danger">Enable JavaScript to manage quests and notes.</p></noscript>
                     </div>
                     <div class="tab-pane fade" id="aiTab">
                         <p class="text-secondary">
