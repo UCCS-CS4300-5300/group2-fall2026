@@ -20,6 +20,29 @@ def combatant():
     )
 
 
+def test_character_saving_throw_bonuses_persist():
+    character = Character.objects.create(
+        name="Ayla",
+        strength_save_bonus=2,
+        dexterity_save_bonus=-1,
+        constitution_save_bonus=0,
+        intelligence_save_bonus=3,
+        wisdom_save_bonus=1,
+        charisma_save_bonus=4,
+    )
+
+    character.refresh_from_db()
+
+    assert (
+        character.strength_save_bonus,
+        character.dexterity_save_bonus,
+        character.constitution_save_bonus,
+        character.intelligence_save_bonus,
+        character.wisdom_save_bonus,
+        character.charisma_save_bonus,
+    ) == (2, -1, 0, 3, 1, 4)
+
+
 def test_add_combatant_saves_character_and_card_on_reload(client):
     response = client.post(
         reverse("core:add_combatant"),
