@@ -102,6 +102,16 @@ def quest_detail(request, quest_id):
     return JsonResponse({"completed": quest.completed})
 
 # Endpoint to update character HP
+# TODO: Make actual API documentation
+'''
+PATCH
+
+Update's character's remaning HP for current encounter
+
+EXPECTS:    {"remaining_hp": int}
+RETURNS:    {"error": str} if response code == 400
+            {"remaining_hp": int} if response code == 200
+'''
 @require_http_methods(["PATCH"])
 def update_hp(request, entry_id):
     # Get character-encounter to update its remaining hp
