@@ -13,4 +13,4 @@ class QuestForm(forms.ModelForm):
 class CharacterForm(forms.ModelForm):
     class Meta:
         model=Character
-        fields=["name", "max_hp", "armor_class"]
+        fields=["name", "max_hp", "armor_class", "char_type"]
