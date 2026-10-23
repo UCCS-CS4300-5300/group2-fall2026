@@ -2,8 +2,10 @@ import { draggableCharacterCard, savePositionOnMove } from "./drag.js";
 import { setupDiceRoller } from "./dice.js";
 import { setupQuests } from "./quests.js";
 import { setupPreset } from "./enemy_presets.js";
+import { selectableCharacterCard } from "./character_select.js";
 
 draggableCharacterCard() //Make character cards draggable
+selectableCharacterCard() // Make character cards selectable
 savePositionOnMove() //Make sure dragged cards position get saved
 setupDiceRoller()
 setupQuests()
