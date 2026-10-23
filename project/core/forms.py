@@ -5,7 +5,17 @@ from .models import Character
 class CharacterForm(forms.ModelForm):
     class Meta:
         model=Character
-        fields=["name", "max_hp", "armor_class"]
+        fields=[
+            "name",
+            "max_hp",
+            "armor_class",
+            "strength_save_bonus",
+            "dexterity_save_bonus",
+            "constitution_save_bonus",
+            "intelligence_save_bonus",
+            "wisdom_save_bonus",
+            "charisma_save_bonus",
+        ]
 
 
 class DiceRollForm(forms.Form):
