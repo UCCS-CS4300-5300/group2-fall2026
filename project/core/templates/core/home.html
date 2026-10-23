@@ -107,6 +107,15 @@
                             AI DM
                         </button>
                     </li>
+                    <li class="nav-item">
+                        <button
+                            class="nav-link"
+                            data-bs-toggle="tab"
+                            data-bs-target="#enemyTab"
+                        >
+                            Enemy Preset
+                        </button>
+                    </li>
                 </ul>
                 <div class="tab-content side-body">
                     <div class="tab-pane fade show active" id="logTab">
@@ -170,6 +179,28 @@
                             placeholder="Ask the DM..."
                             disabled
                         />
+                    </div>
+                    <div class="tab-pane fade" id="enemyTab">
+                        <h2 class="h6 mb-3">Enemy Presets</h2>
+                        <form id="enemyForm" class="input-group mb-3">
+                            <input
+                                id="enemyInput"
+                                class="form-control"
+                                placeholder="Search for a monster"
+                                aria-label="Search for a monster"
+                                required
+                            />
+                            <button class="btn btn-brass" type="submit">
+                                Search
+                            </button>
+                        </form>
+                        <p 
+                            id="enemyStatus" 
+                            class="small text-secondary"
+                            role="status"
+                            aria-live="polite"
+                        ></p>
+                        <div id="enemyResults"></div>
                     </div>
                 </div>
             </aside>
