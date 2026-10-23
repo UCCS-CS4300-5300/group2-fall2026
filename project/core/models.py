@@ -87,3 +87,11 @@ class CharacterEncounter(models.Model):
 
     x_pos = models.IntegerField(default=DEFAULT_X)
     y_pos=models.IntegerField(default=DEFAULT_Y)
+
+
+class Quest(models.Model):
+    encounter = models.ForeignKey(
+        Encounter, on_delete=models.CASCADE, related_name="quests"
+    )
+    text = models.CharField(max_length=500)
+    completed = models.BooleanField(default=False)
