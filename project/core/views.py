@@ -107,9 +107,9 @@ def update_hp(request, entry_id):
     char = get_object_or_404(CharacterEncounter, pk=entry_id)
     try:
         data = json.loads(request.body)
-        new_hp = data["remaining_hp"]
+        new_hp = int(data["remaining_hp"])
     except (ValueError, TypeError, KeyError):
-        return JsonResponse({"error": "remaining_hp field must be a valid integer"}, 400)
+        return JsonResponse({"error": "remaining_hp field must exist and be a valid integer"}, status=400)
 
     char.remaining_hp = new_hp
     char.save(update_fields=["remaining_hp"])

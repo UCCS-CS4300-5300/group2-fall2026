@@ -28,3 +28,8 @@ def test_character_hp_endpoint_valid_int_success(client, combatant):
 
     c.refresh_from_db() # Get update
     assert c.remaining_hp == 19 # Database was updated
+
+@pytest.mark.django_db
+def test_character_hp_endpoint_invalid_key(client, combatant):
+    res = client.patch(reverse('core:update_hp', args=[combatant.pk]), {"invalid": 19}, content_type="application/json")
+    assert res.status_code == 400 # Response returned
