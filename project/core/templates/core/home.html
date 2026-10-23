@@ -110,20 +110,27 @@
                 </ul>
                 <div class="tab-content side-body">
                     <div class="tab-pane fade show active" id="logTab">
-                        <form id="diceForm" method="post" action="{% url 'core:roll_dice' %}" class="mb-3">
-                            {% csrf_token %}
+                        <form id="diceForm" class="mb-3">
                             <h2 class="h6">Dice roller</h2>
                             <div class="row g-2 mb-2">
                                 <div class="col-5">
-                                    <label for="{{ dice_form.sides.id_for_label }}" class="form-label">Die</label>
-                                    {{ dice_form.sides }}
+                                    <label for="id_sides" class="form-label">Die</label>
+                                    <select name="sides" id="id_sides" class="form-select form-select-sm">
+                                        <option value="4">d4</option>
+                                        <option value="6">d6</option>
+                                        <option value="8">d8</option>
+                                        <option value="10">d10</option>
+                                        <option value="12">d12</option>
+                                        <option value="20" selected>d20</option>
+                                    </select>
                                 </div>
                                 <div class="col-7">
-                                    <label for="{{ dice_form.count.id_for_label }}" class="form-label">Number of dice</label>
-                                    {{ dice_form.count }}
+                                    <label for="id_count" class="form-label">Number of dice</label>
+                                    <input name="count" id="id_count" type="number" min="1" max="20" step="1" value="1" required class="form-control form-control-sm" />
                                 </div>
                             </div>
-                            <button class="btn btn-brass" type="submit">Roll dice</button>
+                            <button class="btn btn-brass" type="submit" disabled>Roll dice</button>
+                            <noscript><p class="small text-danger">Enable JavaScript to roll dice.</p></noscript>
                             <p id="diceResult" class="small mt-2 mb-0" role="status" aria-live="polite"></p>
                             <p id="diceError" class="small text-danger mt-2 mb-0" role="alert"></p>
                         </form>
