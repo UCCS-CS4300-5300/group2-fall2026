@@ -33,3 +33,18 @@ def test_character_hp_endpoint_valid_int_success(client, combatant):
 def test_character_hp_endpoint_invalid_key(client, combatant):
     res = client.patch(reverse('core:update_hp', args=[combatant.pk]), {"invalid": 19}, content_type="application/json")
     assert res.status_code == 400 # Response returned
+
+@pytest.mark.django_db
+def test_character_hp_endpoint_float_hp_rejected(client, combatant):
+    res = client.patch(reverse('core:update_hp', args=[combatant.pk]), {"remaining_hp": 10.9}, content_type="application/json")
+    assert res.status_code == 400 # Response returned
+
+@pytest.mark.django_db
+def test_character_hp_endpoint_float_hp_accepted(client, combatant):
+    res = client.patch(reverse('core:update_hp', args=[combatant.pk]), {"remaining_hp": 10.0}, content_type="application/json")
+    assert res.status_code == 200 # Response returned
+
+@pytest.mark.django_db
+def test_character_hp_endpoint_string_hp_rejected(client, combatant):
+    res = client.patch(reverse('core:update_hp', args=[combatant.pk]), {"remaining_hp": "10"}, content_type="application/json")
+    assert res.status_code == 400 # Response returned

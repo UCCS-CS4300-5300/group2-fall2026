@@ -5,6 +5,7 @@ from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST, require_http_methods
 
 import json
+import math
 
 from .forms import QuestForm
 from .models import Encounter
@@ -107,7 +108,8 @@ def update_hp(request, entry_id):
     char = get_object_or_404(CharacterEncounter, pk=entry_id)
     try:
         data = json.loads(request.body)
-        new_hp = int(data["remaining_hp"])
+        new_hp = data["remaining_hp"]
+        if math.floor(new_hp) != new_hp: raise TypeError # Only values representing integers should be allowed
     except (ValueError, TypeError, KeyError):
         return JsonResponse({"error": "remaining_hp field must exist and be a valid integer"}, status=400)
 
