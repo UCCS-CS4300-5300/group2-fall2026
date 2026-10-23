@@ -1,4 +1,5 @@
 import pytest
+import json
 
 from django.urls import reverse
 
@@ -20,6 +21,10 @@ def combatant():
 
 @pytest.mark.django_db
 def test_character_hp_endpoint_valid_int_success(client, combatant):
-    test_char = combatant.character
-    res = client.patch(reverse('core:update_hp', args=[test_char.pk]), {"hp": 19}, content_type="application/json")
+    c = combatant
+    res = client.patch(reverse('core:update_hp', args=[c.pk]), {"remaining_hp": 19}, content_type="application/json")
     assert res.status_code == 200 # Response returned
+    assert res.json()["remaining_hp"] == 19 # Response is accurate
+
+    c.refresh_from_db() # Get update
+    assert c.remaining_hp == 19 # Database was updated

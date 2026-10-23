@@ -102,11 +102,15 @@ def quest_detail(request, quest_id):
 
 # Endpoint to update character HP
 @require_http_methods(["PATCH"])
-def update_hp(request, character_id):
+def update_hp(request, entry_id):
+    # Get character-encounter to update its remaining hp
+    char = get_object_or_404(CharacterEncounter, pk=entry_id)
     try:
         data = json.loads(request.body)
-        new_hp = data["hp"]
+        new_hp = data["remaining_hp"]
     except (ValueError, TypeError, KeyError):
-        return JsonResponse({"error": "hp field must be a valid integer"}, 400)
+        return JsonResponse({"error": "remaining_hp field must be a valid integer"}, 400)
 
-    return HttpResponse(status=200)
+    char.remaining_hp = new_hp
+    char.save(update_fields=["remaining_hp"])
+    return JsonResponse({"remaining_hp": char.remaining_hp}, status=200)
