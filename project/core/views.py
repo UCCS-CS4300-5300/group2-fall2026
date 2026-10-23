@@ -2,7 +2,10 @@ from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.db import transaction
 from django.template.loader import render_to_string
-from django.views.decorators.http import require_POST, require_http_methods
+from django.views.decorators.http import require_POST, require_http_methods, require_GET
+from urllib.error import HTTPError, URLError
+from urllib.parse import urlencode
+from urllib.request import urlopen
 
 import json
 
@@ -23,6 +26,78 @@ def home(request):
             "items": entries,
         }
     )
+
+@require_GET
+def search_enemy(request):
+    query = request.GET.get("q", "").strip()
+
+    if not query:
+        return JsonResponse({"monsters": []})
+
+    base_url = "https://www.dnd5eapi.co/api/2014/monsters"
+
+    try:
+        # Search the API for monster matching the input
+        search_url = f"{base_url}?{urlencode({'name': query})}"
+
+        with urlopen(search_url, timeout=10) as response:
+            search_data = json.loads(response.read().decode("utf-8"))
+
+        monsters = []
+
+        # Limit number of results to keep tab managable
+        for result in search_data.get("results", [])[:5]:
+            monster_index = result.get("index")
+
+            if not monster_index:
+                continue
+
+            monster_url = f"{base_url}/{monster_index}"
+
+            with urlopen(monster_url, timeout=10) as response:
+                monster = json.loads(response.read().decode("utf-8")
+            )
+
+            armor_classes = monster.get("armor_class", [])
+            armor_class = (
+                armor_classes[0].get("value")
+                if armor_classes
+                else None
+            )
+
+            image = monster.get("image")
+
+            if image and image.startswith("/"):
+                image = f"https://www.dnd5eapi.co{image}"
+
+            monsters.append({
+                "name": monster.get("name"),
+                "image": image,
+                "size": monster.get("size"),
+                "type": monster.get("type"),
+                "alignment": monster.get("alignment"),
+                "armor_class": monster.get("armor_class"),
+                "hit_points": monster.get("hit_points"),
+                "speed": monster.get("speed"),
+                "challenge_rating": monster.get("challenge_rating"),
+                "xp": monster.get("xp"),
+                "strength": monster.get("strength"),
+                "dexterity": monster.get("dexterity"),
+                "constitution": monster.get("constitution"),
+                "intelligence": monster.get("intelligence"),
+                "wisdom": monster.get("wisdom"),
+                "charisma": monster.get("charisma"),
+                "actions": monster.get("actions", []),
+            })
+
+        return JsonResponse({"monsters": monsters})
+
+    except (HTTPError, URLError, TimeoutError, OSError, ValueError, KeyError, TypeError):
+        return JsonResponse(
+            {"error": "Unable to retrieve monsters from API."},
+            status=502,
+        )
+
 
 
 # View to add combatant to encounter.
