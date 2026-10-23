@@ -1,4 +1,5 @@
 import pytest
+from django.test import Client
 from django.urls import reverse
 
 from .models import Character, CharacterEncounter, Encounter
@@ -86,6 +87,33 @@ def test_add_combatant_saves_character_and_card_on_reload(client):
     assert b"DEX <strong>-1</strong>" in home.content
     assert f'data-id="{entry.pk}"'.encode() in home.content
     assert list(home.context["items"]) == [entry]
+
+
+def test_add_combatant_accepts_https_localhost_8001_origin():
+    client = Client(enforce_csrf_checks=True)
+    client.get(reverse("core:home"), secure=True, HTTP_HOST="localhost:8001")
+    csrf_token = client.cookies["csrftoken"].value
+
+    response = client.post(
+        reverse("core:add_combatant"),
+        {
+            "name": "Goblin",
+            "max_hp": 12,
+            "armor_class": 13,
+            "strength_save_bonus": 2,
+            "dexterity_save_bonus": -1,
+            "constitution_save_bonus": 0,
+            "intelligence_save_bonus": 3,
+            "wisdom_save_bonus": 1,
+            "charisma_save_bonus": 4,
+        },
+        secure=True,
+        HTTP_HOST="localhost:8001",
+        HTTP_ORIGIN="https://localhost:8001",
+        HTTP_X_CSRFTOKEN=csrf_token,
+    )
+
+    assert response.status_code == 200
 
 
 @pytest.mark.parametrize(
