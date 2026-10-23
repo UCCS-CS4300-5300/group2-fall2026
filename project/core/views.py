@@ -10,6 +10,7 @@ from .forms import QuestForm
 from .models import Encounter
 from .models import CharacterEncounter
 from .models import Quest
+from .models import Character
 
 from .forms import CharacterForm
 
@@ -98,3 +99,14 @@ def quest_detail(request, quest_id):
     quest.completed = data["completed"]
     quest.save(update_fields=["completed"])
     return JsonResponse({"completed": quest.completed})
+
+# Endpoint to update character HP
+@require_http_methods(["PATCH"])
+def update_hp(request, character_id):
+    try:
+        data = json.loads(request.body)
+        new_hp = data["hp"]
+    except (ValueError, TypeError, KeyError):
+        return JsonResponse({"error": "hp field must be a valid integer"}, 400)
+
+    return HttpResponse(status=200)
