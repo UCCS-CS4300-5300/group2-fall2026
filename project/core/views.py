@@ -109,7 +109,7 @@ def update_hp(request, entry_id):
     try:
         data = json.loads(request.body)
         new_hp = data["remaining_hp"]
-        if math.floor(new_hp) != new_hp: raise TypeError # Only values representing integers should be allowed
+        if math.floor(new_hp) != new_hp: raise TypeError # Only numeric values representing integers should be allowed
     except (ValueError, TypeError, KeyError):
         return JsonResponse({"error": "remaining_hp field must exist and be a valid integer"}, status=400)
 
