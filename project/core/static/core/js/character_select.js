@@ -1,5 +1,5 @@
 // Click a combatant card to select it (one selected at a time)
-export function selectableCharacterCard() {
+export function setupSelectableCharacterCard() {
     const board = document.getElementById("board");
     if (!board) return;
 
@@ -30,8 +30,11 @@ export function selectableCharacterCard() {
     });
 
     function clearSelection() {
-        board
-            .querySelectorAll(".combatant.selected")
-            .forEach((el) => el.classList.remove("selected"));
-    }
+    board.querySelectorAll(".combatant.selected").forEach((el) => {
+        el.classList.remove("selected");
+        el.dispatchEvent(
+            new CustomEvent("combatant:deselected", { bubbles: true }),
+        );
+    });
+}
 }

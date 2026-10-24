@@ -1,5 +1,5 @@
 //Function to allow combatant cards to be draggable
-export function draggableCharacterCard() {
+export function setupDraggableCharacterCard() {
     const board = document.getElementById("board");
     if (!board) return;
 

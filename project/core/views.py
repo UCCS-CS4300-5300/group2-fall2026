@@ -190,7 +190,7 @@ RETURNS:    {"error": str} if response code == 400
 @require_http_methods(["PATCH"])
 def update_hp(request, entry_id):
     # Get character-encounter to update its remaining hp
-    char = get_object_or_404(CharacterEncounter, pk=entry_id)
+    combatant = get_object_or_404(CharacterEncounter, pk=entry_id)
     try:
         data = json.loads(request.body)
         new_hp = data["remaining_hp"]
@@ -198,6 +198,8 @@ def update_hp(request, entry_id):
     except (ValueError, TypeError, KeyError):
         return JsonResponse({"error": "remaining_hp field must exist and be a valid integer"}, status=400)
 
-    char.remaining_hp = new_hp
-    char.save(update_fields=["remaining_hp"])
-    return JsonResponse({"remaining_hp": char.remaining_hp}, status=200)
+    # New HP can only max out at character's max
+    new_hp = min(new_hp, combatant.character.max_hp)
+    combatant.remaining_hp = new_hp
+    combatant.save(update_fields=["remaining_hp"])
+    return JsonResponse({"remaining_hp": combatant.remaining_hp}, status=200)
