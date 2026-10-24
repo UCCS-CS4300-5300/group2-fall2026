@@ -1,6 +1,6 @@
 {% with char=entry.character %}
 <div
-    class="combatant {{entry.type}}"
+    class="combatant {{char.char_type}}"
     style="left: {{entry.x_pos}}px; top: {{entry.y_pos}}px;"
     data-id="{{ entry.id }}"
     data-char-id="{{ char.id }}"
@@ -11,7 +11,7 @@
     <div class="d-flex justify-content-between align-items-baseline">
         <h5 class="name h6 m-0">{{char.name}}</h5>
         <span class="small text-secondary text-uppercase"
-            >{{char.type|default:"enemy"}}</span
+            >{{char.char_type|default:"enemy"}}</span
         >
     </div>
     <div class="hp-track my-2">
