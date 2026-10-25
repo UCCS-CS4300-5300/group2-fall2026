@@ -1,0 +1,10 @@
+<li class="list-group-item d-flex align-items-start gap-2" data-url="{% url 'core:quest_detail' quest.pk %}">
+    <input
+        id="quest-{{ quest.pk }}"
+        type="checkbox"
+        class="form-check-input mt-1 flex-shrink-0"
+        {% if quest.completed %}checked{% endif %}
+    />
+    <label for="quest-{{ quest.pk }}" class="text-break{% if quest.completed %} text-decoration-line-through text-secondary{% endif %}">{{ quest.text }}</label>
+    <button type="button" class="btn btn-sm btn-outline-danger ms-auto" aria-label="Delete quest">Delete</button>
+</li>

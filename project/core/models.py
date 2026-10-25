@@ -25,6 +25,7 @@ class Character(models.Model):
     # Basic info
     name = models.CharField(max_length=120)
     description = models.TextField(blank=True)
+    char_type = models.CharField(max_length=120, default="enemy", blank=True)
 
     # Ability Scores
     strength = models.IntegerField(default=0)
@@ -47,16 +48,6 @@ class Character(models.Model):
 
     def __str__(self):
         return self.name
-
-
-# Player and enemy classes just stubbed out for now
-class Player(Character):
-    pass
-
-
-class Enemy(Character):
-    pass
-
 
 # Encounter class. Includes a list of multiple characters.
 class Encounter(models.Model):
@@ -87,3 +78,11 @@ class CharacterEncounter(models.Model):
 
     x_pos = models.IntegerField(default=DEFAULT_X)
     y_pos=models.IntegerField(default=DEFAULT_Y)
+
+
+class Quest(models.Model):
+    encounter = models.ForeignKey(
+        Encounter, on_delete=models.CASCADE, related_name="quests"
+    )
+    text = models.CharField(max_length=500)
+    completed = models.BooleanField(default=False)

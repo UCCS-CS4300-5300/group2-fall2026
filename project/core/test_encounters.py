@@ -19,6 +19,17 @@ def combatant():
         y_pos=60,
     )
 
+@pytest.fixture
+def combatant_player(combatant):
+    c = combatant
+    c.char_type="player"
+    return c
+
+@pytest.fixture
+def combatant_enemy(combatant):
+    c = combatant
+    c.char_type="enemy"
+    return c
 
 def test_add_combatant_saves_character_and_card_on_reload(client):
     response = client.post(
@@ -139,3 +150,22 @@ def test_same_character_has_separate_state_in_each_encounter(combatant):
     assert (other_entry.remaining_hp, other_entry.initiative) == (12, 2)
     assert (other_entry.x_pos, other_entry.y_pos) == (70, 80)
     assert combatant.character.max_hp == 12
+
+@pytest.mark.django_db
+def test_default_enemy_type(combatant):
+    assert combatant.character.char_type=='enemy'
+
+@pytest.mark.django_db
+def test_add_combatant_sets_type(client):
+    char_form = {
+        "name": "test",
+        "max_hp": 12,
+        "armor_class": 20,
+        "char_type": "player",
+    }
+
+    res = client.post(reverse("core:add_combatant"), char_form)
+    
+    assert res.status_code == 200 # Request went through
+    assert Character.objects.filter(name="test").exists() # Character was created
+    assert Character.objects.get(name="test").char_type == "player"
