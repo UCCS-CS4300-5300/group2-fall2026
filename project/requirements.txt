@@ -1,3 +1,5 @@
 Django>=5.1,<5.3
+ollama>=0.5
+pypdf>=5,<7
 pytest>=8,<9
 pytest-django>=4.8,<5
