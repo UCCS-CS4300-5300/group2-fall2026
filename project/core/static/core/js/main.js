@@ -34,3 +34,71 @@ addForm.addEventListener("submit", async (e) => {
     addForm.reset()
     bootstrap.Modal.getOrCreateInstance(addModalEl).hide();
 })
+
+const chatHistories = new Map();
+
+document.querySelectorAll(".chat-form").forEach((form) => {
+    const messagesEl = document.getElementById(form.dataset.messages);
+    const statusEl = document.getElementById(form.dataset.status);
+    const input = form.elements.message;
+    const sendButton = form.querySelector("button[type='submit']");
+    chatHistories.set(form.dataset.chatType, []);
+
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const message = input.value.trim();
+        if (!message) {
+            statusEl.textContent = "Enter a message before sending.";
+            return;
+        }
+        if (message.length > input.maxLength) {
+            statusEl.textContent = `Message must be at most ${input.maxLength} characters.`;
+            return;
+        }
+
+        const userMessage = document.createElement("p");
+        userMessage.className = "chat-message user-message";
+        userMessage.textContent = `You: ${message}`;
+        messagesEl.append(userMessage);
+        statusEl.classList.remove("text-danger");
+        statusEl.textContent = "Thinking...";
+        input.disabled = true;
+        sendButton.disabled = true;
+
+        const formData = new FormData(form);
+        formData.set("message", message);
+        formData.set("chat_type", form.dataset.chatType);
+        formData.set("history", JSON.stringify(chatHistories.get(form.dataset.chatType)));
+
+        try {
+            const response = await fetch(form.action, {
+                method: "POST",
+                body: formData,
+                headers: { "X-Requested-With": "XMLHttpRequest" },
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || "The chat request failed.");
+
+            const assistantMessage = document.createElement("p");
+            assistantMessage.className = "chat-message assistant-message";
+            assistantMessage.textContent = result.reply;
+            messagesEl.append(assistantMessage);
+            const history = chatHistories.get(form.dataset.chatType);
+            history.push(
+                { role: "user", content: message },
+                { role: "assistant", content: result.reply },
+            );
+            if (history.length > 20) history.splice(0, history.length - 20);
+            input.value = "";
+            statusEl.textContent = "";
+        } catch (error) {
+            statusEl.textContent = error.message || "Could not reach the chat service.";
+            statusEl.classList.add("text-danger");
+        } finally {
+            input.disabled = false;
+            sendButton.disabled = false;
+            input.focus();
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+    });
+});
