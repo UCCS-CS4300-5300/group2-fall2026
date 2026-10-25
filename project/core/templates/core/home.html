@@ -240,14 +240,16 @@
                         </form>
                     </div>
                     <div class="tab-pane fade" id="rulesTab">
-                        <p class="text-secondary">
-                            The Rules Lawyer chat will go here in a later sprint.
-                        </p>
-                        <input
-                            class="form-control"
-                            placeholder="Ask the Rules Lawyer..."
-                            disabled
-                        />
+                        <div id="rulesMessages" class="chat-messages mb-2" aria-live="polite"></div>
+                        <p id="rulesChatStatus" class="small text-secondary" role="status"></p>
+                        <form class="chat-form" data-chat-type="rules" data-messages="rulesMessages" data-status="rulesChatStatus" action="{% url 'core:chat' %}">
+                            {% csrf_token %}
+                            <label class="visually-hidden" for="rulesChatInput">Message the Rules Lawyer</label>
+                            <div class="input-group">
+                                <input id="rulesChatInput" name="message" class="form-control" maxlength="4000" placeholder="Ask the Rules Lawyer..." required />
+                                <button class="btn btn-brass" type="submit">Send</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </aside>

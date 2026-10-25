@@ -18,7 +18,9 @@ class PageForms(HTMLParser):
         attrs = dict(attrs)
         if tag == "form":
             self.current = []
-            self.forms[attrs["id"]] = self.current
+            form_id = attrs.get("id")
+            if form_id is not None:
+                self.forms[form_id] = self.current
         if self.current is not None:
             self.current.append((tag, attrs))
 
