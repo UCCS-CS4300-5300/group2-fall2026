@@ -3,8 +3,8 @@ import { rollDice } from "./dice.js";
 //Add listener for "Roll initiative" button
 export function setupInitiativeRoller() {
     const initBtn = document.getElementById("initBtn");
-    const charCards = document.querySelectorAll(".combatant");
     initBtn.addEventListener('click', () => {
+        const charCards = document.querySelectorAll(".combatant");
         // Do this for each character card
         for (const card of charCards) {
             const badge = card.querySelector(".init-badge");
