@@ -603,7 +603,7 @@ def quest_detail(request, quest_id):
 '''
 PATCH
 
-Update's character's remaning HP for current encounter
+Updates character's remaning HP for current encounter
 
 EXPECTS:    {"remaining_hp": int}
 RETURNS:    {"error": str} if response code == 400
@@ -625,3 +625,31 @@ def update_hp(request, entry_id):
     combatant.remaining_hp = new_hp
     combatant.save(update_fields=["remaining_hp"])
     return JsonResponse({"remaining_hp": combatant.remaining_hp}, status=200)
+
+# Endpoint to update character initiative for specified encounter
+# TODO: Make actual API documentation
+'''
+PATCH
+
+Updates character's initiative for current encounter
+
+EXPECTS:    {"initiative": int}
+RETURNS:    {"error": str} if response code == 400
+            {"initiative": int} if response code == 200
+'''
+@require_http_methods(["PATCH"])
+def update_initiative(request, entry_id):
+    # Get character-encounter to update its initiative
+    combatant = get_object_or_404(CharacterEncounter, pk=entry_id)
+    try:
+        data = json.loads(request.body)
+        initiative = data["initiative"]
+        if math.floor(initiative) != initiative: raise TypeError # Only numeric values representing integers should be allowed
+    except (ValueError, TypeError, KeyError):
+        return JsonResponse({"error": "initiative field must exist and be a valid integer"}, status=400)
+
+    # Initiative can only max out at 20 necessarily
+    initiative = min(initiative, 20)
+    combatant.initiative = initiative
+    combatant.save(update_fields=["initiative"])
+    return JsonResponse({"initiative": combatant.initiative}, status=200)

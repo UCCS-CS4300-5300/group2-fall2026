@@ -4,6 +4,7 @@ import { setupQuests } from "./quests.js";
 import { setupPreset } from "./enemy_presets.js";
 import { setupSelectableCharacterCard } from "./character_select.js";
 import { setupEditableHp } from "./editable_hp.js";
+import { setupInitiativeRoller } from "./initiative_roller.js";
 
 setupDraggableCharacterCard() //Make character cards draggable
 setupSelectableCharacterCard() // Make character cards selectable
@@ -12,6 +13,7 @@ setupDiceRoller()
 setupQuests()
 setupPreset() 
 setupEditableHp() // Make character current HP editable
+setupInitiativeRoller()
 
 //Logic for adding new combatant with the "addForm" element on the home template.
 const addForm = document.getElementById("addForm");
