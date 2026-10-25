@@ -7,6 +7,7 @@
     data-init-value="{{ entry.initiative }}"
     data-move-url="{% url 'core:move_combatant' entry.id %}"
     data-update-hp-url="{% url 'core:update_hp' entry.id %}"
+    data-update-initiative-url="{% url 'core:update_initiative' entry.id %}"
 >
     <!-- Show initiative if it is non-zero -->
     {% if entry.initiative == 0 %}

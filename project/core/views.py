@@ -204,7 +204,7 @@ def quest_detail(request, quest_id):
 '''
 PATCH
 
-Update's character's remaning HP for current encounter
+Updates character's remaning HP for current encounter
 
 EXPECTS:    {"remaining_hp": int}
 RETURNS:    {"error": str} if response code == 400
@@ -232,7 +232,7 @@ def update_hp(request, entry_id):
 '''
 PATCH
 
-Update's character's remaning HP for current encounter
+Updates character's initiative for current encounter
 
 EXPECTS:    {"initiative": int}
 RETURNS:    {"error": str} if response code == 400

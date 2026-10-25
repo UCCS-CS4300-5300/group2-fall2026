@@ -97,4 +97,12 @@ def test_character_initiative_too_large_returns_max(client, combatant):
     assert res.json()["initiative"] == 20
 
     combatant.refresh_from_db()
-    assert combatant.initiative == 20
+    
+@pytest.mark.django_db
+def test_character_initiative_0_accepted(client, combatant):
+    res = client.patch(reverse('core:update_initiative', args=[combatant.pk]), {"initiative": 0}, content_type="application/json")
+    assert res.status_code == 200 # Response returned
+    assert res.json()["initiative"] == 0
+
+    combatant.refresh_from_db()
+    assert combatant.initiative == 0
