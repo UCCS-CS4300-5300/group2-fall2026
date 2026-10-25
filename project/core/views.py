@@ -8,6 +8,16 @@ from urllib.parse import urlencode
 from urllib.request import urlopen
 
 import json
+import os
+import random
+import re
+from functools import lru_cache
+from pathlib import Path
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
+
+from pypdf import PdfReader
+from pypdf.errors import PdfReadError
 import math
 import os
 import random
