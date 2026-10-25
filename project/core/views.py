@@ -33,33 +33,42 @@ def home(request):
 def search_enemy(request):
     query = request.GET.get("q", "").strip()
 
+    # Return empty list if user doesnt enter search term 
     if not query:
         return JsonResponse({"monsters": []})
 
+    # Bae URL for D&D 5e API
     base_url = "https://www.dnd5eapi.co/api/2014/monsters"
 
     try:
         # Search the API for monster matching the input
         search_url = f"{base_url}?{urlencode({'name': query})}"
 
+        # Send search request and read JSON response
         with urlopen(search_url, timeout=10) as response:
             search_data = json.loads(response.read().decode("utf-8"))
 
+        # Holds the monster info sent to JS
         monsters = []
 
         # Limit number of results to keep tab managable
         for result in search_data.get("results", [])[:5]:
+            # Get API identifier for monster
             monster_index = result.get("index")
 
+            # Skip Result if no identifier found
             if not monster_index:
                 continue
 
+            # Build URl for monster detail info
             monster_url = f"{base_url}/{monster_index}"
 
+            # Request monsters full stats
             with urlopen(monster_url, timeout=10) as response:
                 monster = json.loads(response.read().decode("utf-8")
             )
 
+            # Extract numeric armor class
             armor_classes = monster.get("armor_class", [])
             armor_class = (
                 armor_classes[0].get("value")
@@ -67,18 +76,31 @@ def search_enemy(request):
                 else None
             )
 
+            # Extract armor class type if available
+            armor_class_type = ( 
+                armor_classes[0].get("type")
+                if armor_classes
+                else None
+            )
+
+            # Get monster image path from API
             image = monster.get("image")
 
+            # Turn image pth into URL
             if image and image.startswith("/"):
                 image = f"https://www.dnd5eapi.co{image}"
 
+            # Selecting fields needed by frontend
             monsters.append({
                 "name": monster.get("name"),
                 "image": image,
                 "size": monster.get("size"),
                 "type": monster.get("type"),
                 "alignment": monster.get("alignment"),
-                "armor_class": monster.get("armor_class"),
+                # Send extracted values
+                "armor_class": armor_class,
+                "armor_class_type": armor_class_type,
+
                 "hit_points": monster.get("hit_points"),
                 "speed": monster.get("speed"),
                 "challenge_rating": monster.get("challenge_rating"),
@@ -92,10 +114,11 @@ def search_enemy(request):
                 "actions": monster.get("actions", []),
             })
 
+        # Return the list in format expected by enemy_presets.js
         return JsonResponse({"monsters": monsters})
 
     except (HTTPError, URLError, TimeoutError, OSError, ValueError, KeyError, TypeError):
-        return JsonResponse(
+        return JsonResponse( # Return JSON error
             {"error": "Unable to retrieve monsters from API."},
             status=502,
         )
