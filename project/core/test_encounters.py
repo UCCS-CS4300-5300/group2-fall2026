@@ -44,6 +44,14 @@ def test_add_combatant_saves_character_and_card_on_reload(client):
     assert entry.character.name == "Goblin"
     assert entry.character.max_hp == 12
     assert entry.character.armor_class == 13
+    assert (
+        entry.character.strength_save_bonus,
+        entry.character.dexterity_save_bonus,
+        entry.character.constitution_save_bonus,
+        entry.character.intelligence_save_bonus,
+        entry.character.wisdom_save_bonus,
+        entry.character.charisma_save_bonus,
+    ) == (0, 0, 0, 0, 0, 0)
     assert entry.remaining_hp == 12
     assert entry.initiative == 0
     assert entry.x_pos == CharacterEncounter.DEFAULT_X
@@ -57,12 +65,72 @@ def test_add_combatant_saves_character_and_card_on_reload(client):
     assert list(home.context["items"]) == [entry]
 
 
+def test_add_combatant_saves_and_displays_saving_throw_bonuses(client):
+    response = client.post(
+        reverse("core:add_combatant"),
+        {
+            "name": "Ayla",
+            "max_hp": 20,
+            "armor_class": 15,
+            "char_type": "player",
+            "strength_save_bonus": 2,
+            "dexterity_save_bonus": -1,
+            "constitution_save_bonus": 0,
+            "intelligence_save_bonus": 3,
+            "wisdom_save_bonus": 1,
+            "charisma_save_bonus": 4,
+        },
+    )
+
+    assert response.status_code == 200
+    entry = CharacterEncounter.objects.select_related("character").get()
+    assert entry.character.char_type == "player"
+    assert (
+        entry.character.strength_save_bonus,
+        entry.character.dexterity_save_bonus,
+        entry.character.constitution_save_bonus,
+        entry.character.intelligence_save_bonus,
+        entry.character.wisdom_save_bonus,
+        entry.character.charisma_save_bonus,
+    ) == (2, -1, 0, 3, 1, 4)
+    assert b"STR <strong>2</strong>" in response.content
+    assert b"DEX <strong>-1</strong>" in response.content
+
+    home = client.get(reverse("core:home"))
+    assert home.status_code == 200
+    assert b"CHA <strong>4</strong>" in home.content
+
+
+def test_home_add_combatant_form_includes_saving_throw_bonuses(client):
+    response = client.get(reverse("core:home"))
+
+    assert response.status_code == 200
+    for field in (
+        "strength_save_bonus",
+        "dexterity_save_bonus",
+        "constitution_save_bonus",
+        "intelligence_save_bonus",
+        "wisdom_save_bonus",
+        "charisma_save_bonus",
+    ):
+        assert f'name="{field}"'.encode() in response.content
+
+
 @pytest.mark.parametrize(
     "data, field",
     [
         ({"max_hp": 12, "armor_class": 13}, "name"),
         ({"name": "Goblin", "max_hp": "many", "armor_class": 13}, "max_hp"),
         ({"name": "Goblin", "max_hp": 12, "armor_class": "tough"}, "armor_class"),
+        (
+            {
+                "name": "Goblin",
+                "max_hp": 12,
+                "armor_class": 13,
+                "constitution_save_bonus": "strong",
+            },
+            "constitution_save_bonus",
+        ),
     ],
 )
 def test_invalid_combatant_does_not_create_partial_records(client, data, field):
