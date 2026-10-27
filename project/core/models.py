@@ -35,6 +35,12 @@ class Character(models.Model):
     wisdom = models.IntegerField(default=0)
     charisma = models.IntegerField(default=0)
     armor_class = models.IntegerField(default=0)
+    strength_save_bonus = models.IntegerField(default=0)
+    dexterity_save_bonus = models.IntegerField(default=0)
+    constitution_save_bonus = models.IntegerField(default=0)
+    intelligence_save_bonus = models.IntegerField(default=0)
+    wisdom_save_bonus = models.IntegerField(default=0)
+    charisma_save_bonus = models.IntegerField(default=0)
 
     # Other info
     max_hp = models.IntegerField(default=0)

@@ -29,5 +29,13 @@
         <span class="hp-field" data-remaining="{{entry.remaining_hp}}" data-max="{{char.max_hp}}"></span>
         <span>AC <strong>{{char.armor_class}}</strong></span>
     </div>
+    <div class="row row-cols-3 g-0 mt-2 small text-secondary" aria-label="Saving throw bonuses">
+        <span class="col">STR <strong>{{char.strength_save_bonus}}</strong></span>
+        <span class="col">DEX <strong>{{char.dexterity_save_bonus}}</strong></span>
+        <span class="col">CON <strong>{{char.constitution_save_bonus}}</strong></span>
+        <span class="col">INT <strong>{{char.intelligence_save_bonus}}</strong></span>
+        <span class="col">WIS <strong>{{char.wisdom_save_bonus}}</strong></span>
+        <span class="col">CHA <strong>{{char.charisma_save_bonus}}</strong></span>
+    </div>
 </div>
 {% endwith %}
