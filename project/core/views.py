@@ -188,7 +188,7 @@ def encounter(request, encounter_id):
     character_encounters = CharacterEncounter.objects.filter(encounter__pk=encounter_id)
     return render(
         request,
-        "core/home.html",
+        "core/encounter.html",
         {
             "quests": Quest.objects.filter(encounter__pk=encounter_id).order_by("id"),
             "items": character_encounters,
