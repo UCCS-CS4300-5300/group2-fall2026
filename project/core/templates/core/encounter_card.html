@@ -1,0 +1,31 @@
+<div class="col-12 col-sm-6 col-lg-4 col-xl-3 encounter-col" data-encounter-col="{{ encounter.id }}">
+    <article
+        class="encounter-card"
+        data-id="{{ encounter.id }}"
+        data-name="{{ encounter.name }}"
+        data-open-url=""
+        data-delete-url=""
+    >
+        <h5 class="name h6 m-0 mb-1">
+            <a href="" class="stretched-link">{{ encounter.name }}</a>
+        </h5>
+
+        <div class="d-flex gap-3 small mb-3">
+            <span>Players <strong>{{ encounter.player_count|default:0 }}</strong></span>
+            <span>Enemies <strong>{{ encounter.enemy_count|default:0 }}</strong></span>
+        </div>
+
+        <div class="encounter-actions d-flex gap-2">
+            <a href="" class="btn btn-brass btn-sm">Open</a>
+            <button
+                type="button"
+                class="btn btn-sm btn-outline-secondary ms-auto js-delete-encounter"
+                data-bs-toggle="modal"
+                data-bs-target="#deleteModal"
+                aria-label="Delete {{ encounter.name }}"
+            >
+                Delete
+            </button>
+        </div>
+    </article>
+</div>

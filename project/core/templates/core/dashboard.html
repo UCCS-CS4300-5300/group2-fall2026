@@ -1,0 +1,132 @@
+{% load static %}
+<!doctype html>
+
+<html lang="en" data-bs-theme="dark">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Encounter Helper - Dashboard</title>
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Alegreya:wght@500;700&display=swap"
+            rel="stylesheet"
+        />
+        <link href="{% static 'core/css/styles.css' %}" rel="stylesheet" />
+    </head>
+
+    <body>
+        <div class="topbar d-flex align-items-center px-3 py-2 gap-3">
+            <h1 class="h4 m-0">Encounter Helper</h1>
+            <span class="small text-secondary">Your encounters</span>
+            <button
+                class="btn btn-brass btn-sm ms-auto"
+                data-bs-toggle="modal"
+                data-bs-target="#createModal"
+            >
+                New encounter
+            </button>
+        </div>
+
+        <main class="dashboard" id="dashboard">
+            <div class="container-xl py-4">
+                <p id="dashboardStatus" class="small text-secondary" role="status" aria-live="polite"></p>
+
+                {% if not encounters %}
+                <div id="emptyMsg" class="text-secondary text-center py-5">
+                    <p class="mb-1">No encounters yet.</p>
+                    <p class="small">
+                        Use "New encounter" to set up your first fight.
+                    </p>
+                </div>
+                {% endif %}
+
+                <div class="row g-3" id="encounterGrid">
+                    <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+                        <button
+                            type="button"
+                            class="encounter-new w-100"
+                            data-bs-toggle="modal"
+                            data-bs-target="#createModal"
+                        >
+                            <span class="encounter-new-plus" aria-hidden="true">+</span>
+                            <span>New encounter</span>
+                        </button>
+                    </div>
+
+                    {% for encounter in encounters %}
+                        {% include "core/encounter_card.html" with encounter=encounter %}
+                    {% endfor %}
+                </div>
+            </div>
+        </main>
+
+        <!-- Create encounter modal -->
+        <div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="createModalTitle">
+            <div class="modal-dialog">
+                <form class="modal-content" id="createForm" method="post" action=""">
+                    {% csrf_token %}
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="createModalTitle">New encounter</h5>
+                        <button
+                            type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"
+                        ></button>
+                    </div>
+                    <div class="modal-body">
+                        <label class="form-label" for="newEncounterName">Name</label>
+                        <input
+                            id="newEncounterName"
+                            name="name"
+                            class="form-control"
+                            maxlength="100"
+                            placeholder="Goblin Ambush"
+                            required
+                        />
+                        <p id="createError" class="small text-danger mt-2 mb-0" role="alert"></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-brass" type="submit">Create encounter</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Delete confirmation modal (one shared modal; JS fills in the name and URL) -->
+        <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalTitle">
+            <div class="modal-dialog">
+                <form class="modal-content" id="deleteForm" method="post" action="">
+                    {% csrf_token %}
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteModalTitle">Delete encounter</h5>
+                        <button
+                            type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"
+                        ></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="mb-1">
+                            Delete <strong id="deleteEncounterName"></strong>?
+                        </p>
+                        <p class="small text-secondary mb-0">
+                            Its combatants, quests, and notes will be removed. This can't be undone.
+                        </p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger" id="confirmDeleteBtn">Delete encounter</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script type="module" src="{% static 'core/js/dashboard.js' %}"></script>
+    </body>
+</html>
