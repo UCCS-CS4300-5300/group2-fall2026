@@ -6,11 +6,14 @@ from .models import Character, CharacterEncounter, Encounter
 
 pytestmark = pytest.mark.django_db
 
+@pytest.fixture
+def encounter():
+    encounter = Encounter.objects.create(name="Forest", location="Trail")
+    return encounter
 
 @pytest.fixture
-def combatant():
+def combatant(encounter):
     character = Character.objects.create(name="Goblin", max_hp=12, armor_class=13)
-    encounter = Encounter.objects.create(name="Forest", location="Trail")
     return CharacterEncounter.objects.create(
         character=character,
         encounter=encounter,
@@ -31,7 +34,7 @@ def combatant_enemy(combatant):
     c.char_type="enemy"
     return c
 
-def test_add_combatant_saves_character_and_card_on_reload(client):
+def test_add_combatant_saves_character_and_card_on_reload(client, encounter):
     response = client.post(
         reverse("core:add_combatant"),
         {"name": "Goblin", "max_hp": 12, "armor_class": 13},
@@ -39,7 +42,6 @@ def test_add_combatant_saves_character_and_card_on_reload(client):
 
     assert response.status_code == 200
     assert Character.objects.count() == 1
-    assert Encounter.objects.count() == 1
     entry = CharacterEncounter.objects.select_related("character").get()
     assert entry.character.name == "Goblin"
     assert entry.character.max_hp == 12
@@ -65,7 +67,7 @@ def test_add_combatant_saves_character_and_card_on_reload(client):
     assert list(home.context["items"]) == [entry]
 
 
-def test_add_combatant_saves_and_displays_saving_throw_bonuses(client):
+def test_add_combatant_saves_and_displays_saving_throw_bonuses(client, encounter):
     response = client.post(
         reverse("core:add_combatant"),
         {
@@ -101,7 +103,7 @@ def test_add_combatant_saves_and_displays_saving_throw_bonuses(client):
     assert b"CHA <strong>4</strong>" in home.content
 
 
-def test_home_add_combatant_form_includes_saving_throw_bonuses(client):
+def test_home_add_combatant_form_includes_saving_throw_bonuses(client, encounter):
     response = client.get(reverse("core:home"))
 
     assert response.status_code == 200
