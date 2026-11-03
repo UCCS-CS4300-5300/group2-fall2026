@@ -7,22 +7,6 @@ from .models import Character, CharacterEncounter, Encounter
 pytestmark = pytest.mark.django_db
 
 @pytest.fixture
-def encounter():
-    encounter = Encounter.objects.create(name="Forest", location="Trail")
-    return encounter
-
-@pytest.fixture
-def combatant(encounter):
-    character = Character.objects.create(name="Goblin", max_hp=12, armor_class=13)
-    return CharacterEncounter.objects.create(
-        character=character,
-        encounter=encounter,
-        remaining_hp=12,
-        x_pos=50,
-        y_pos=60,
-    )
-
-@pytest.fixture
 def combatant_player(combatant):
     c = combatant
     c.char_type="player"
