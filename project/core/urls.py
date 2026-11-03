@@ -7,10 +7,10 @@ urlpatterns=[
     path("encounter/<int:encounter_id>",views.encounter,name="encounter"), 
     path("api/enemies/", views.search_enemy, name="search_enemy"),
     path("chat/", views.chat, name="chat"),
-    path("encounters", views.add_combatant, name="add_combatant"),
+    path("combatants/<int:encounter_id>/", views.add_combatant, name="add_combatant"),
     path("combatants/<int:entry_id>/move/", views.move_combatant, name="move_combatant"),
-    path("quests/", views.add_quest, name="add_quest"),
-    path("quests/<int:quest_id>/", views.quest_detail, name="quest_detail"),
+    path("quests/<int:encounter_id>", views.add_quest, name="add_quest"),
+    path("quests/<int:quest_id>/<int:encounter_id>", views.quest_detail, name="quest_detail"),
     path("character/<int:entry_id>/hp/", views.update_hp, name="update_hp"),
     path("character/<int:entry_id>/initiative/", views.update_initiative, name="update_initiative")
 ]

@@ -540,7 +540,7 @@ def chat(request):
 
 # View to add combatant to encounter.
 @require_POST
-def add_combatant(request):
+def add_combatant(request, encounter_id):
     # TODO: This creates a new character every single time. In the future, we might want to have this allow a repeat character/character type.
     form=CharacterForm(request.POST)
     if not form.is_valid():
@@ -548,7 +548,7 @@ def add_combatant(request):
 
     # Atomically add the "CharacterEncounter linking table"
     with transaction.atomic():
-        encounter, _ = Encounter.objects.get_or_create(name="test_encounter") # This is a placeholder since we only have 1 encounter
+        encounter, _ = get_object_or_404(Encounter, pk=encounter_id) # This is a placeholder since we only have 1 encounter
         character = form.save()
         entry = CharacterEncounter.objects.create(
             character=character,
@@ -579,13 +579,13 @@ def move_combatant(request, entry_id):
 
 
 @require_POST
-def add_quest(request):
+def add_quest(request, encounter_id):
     form = QuestForm(request.POST)
     if not form.is_valid():
         return JsonResponse(form.errors, status=400)
 
     with transaction.atomic():
-        encounter, _ = Encounter.objects.get_or_create(name="test_encounter")
+        encounter, _ = get_object_or_404(Encounter, pk=encounter_id)
         quest = form.save(commit=False)
         quest.encounter = encounter
         quest.save()
@@ -595,8 +595,8 @@ def add_quest(request):
 
 
 @require_http_methods(["PATCH", "DELETE"])
-def quest_detail(request, quest_id):
-    quest = get_object_or_404(Quest, pk=quest_id, encounter__name="test_encounter")
+def quest_detail(request, quest_id, encounter_id):
+    quest = get_object_or_404(Quest, pk=quest_id, encounter__pk=encounter_id)
     if request.method == "DELETE":
         quest.delete()
         return HttpResponse(status=204)
