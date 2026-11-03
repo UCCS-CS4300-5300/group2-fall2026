@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.db import transaction
+from django.db.models import Count, Q
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST, require_http_methods, require_GET
 from urllib.error import HTTPError, URLError
@@ -183,14 +184,27 @@ def _retrieve_rules_pdf_context(question, pdf_path):
     ]
 
 
-def home(request):
-    entries = CharacterEncounter.objects.all()
+def encounter(request, encounter_id):
+    character_encounters = CharacterEncounter.objects.filter(encounter__pk=encounter_id)
     return render(
         request,
         "core/home.html",
         {
-            "quests": Quest.objects.filter(encounter__name="test_encounter").order_by("id"),
-            "items": entries,
+            "quests": Quest.objects.filter(encounter__pk=encounter_id).order_by("id"),
+            "items": character_encounters,
+        }
+    )
+
+def dashboard(request):
+    encounters = Encounter.objects.annotate(
+        player_count=Count("characters", filter=Q(characters__char_type="player")),
+        enemy_count=Count("characters", filter=Q(characters__char_type="enemy")),
+    )
+    return render(
+        request,
+        "core/dashboard.html",
+        {
+            "encounters": encounters
         }
     )
 
