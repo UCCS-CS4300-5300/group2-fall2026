@@ -13,16 +13,6 @@ pytestmark = pytest.mark.django_db
 def quest(encounter):
     return Quest.objects.create(encounter=encounter, text="Find the missing map")
 
-
-def test_empty_encounter_does_not_create_an_encounter(client):
-    response = client.get(reverse("core:encounter", kwargs={"encounter_id": 999}))
-
-    assert response.status_code == 200
-    assert list(response.context["quests"]) == []
-    assert not Encounter.objects.exists()
-    assert not Quest.objects.exists()
-
-
 def test_add_quest_trims_text_and_saves_it_on_reload(client, encounter):
     response = client.post(
         reverse("core:add_quest"), {"text": "  Find the missing map  "}

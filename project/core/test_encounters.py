@@ -222,3 +222,9 @@ def test_add_combatant_sets_type(client, encounter):
     assert res.status_code == 200 # Request went through
     assert Character.objects.filter(name="test").exists() # Character was created
     assert Character.objects.get(name="test").char_type == "player"
+
+def test_empty_encounter_does_not_create_an_encounter(client):
+    response = client.get(reverse("core:encounter", kwargs={"encounter_id": 999}))
+
+    assert response.status_code == 404 # No encounter exists, this should 404
+    assert not Encounter.objects.exists()
