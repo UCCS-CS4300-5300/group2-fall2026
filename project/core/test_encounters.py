@@ -228,3 +228,67 @@ def test_empty_encounter_does_not_create_an_encounter(client):
 
     assert response.status_code == 404 # No encounter exists, this should 404
     assert not Encounter.objects.exists()
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"name": "valid", "location": "candyland", "description": "funny"},
+        {"name": "x" * 120, "location": "candyland", "description": "funny"},
+    ],
+)
+def test_add_valid_encounter_creates_new_encounter(client, payload):
+    print(payload)
+    response = client.post(reverse("core:add_encounter"), payload)
+    assert response.status_code == 200 # Successful
+    assert Encounter.objects.exists() # Encounter was added
+
+def test_add_valid_encounter_shows_on_dashboard(client):
+    payload = {"name": "valid", "location": "candyland", "description": "funny"}
+    response = client.post(reverse("core:add_encounter"), payload)
+    assert response.status_code == 200 # Successful
+    assert Encounter.objects.exists() # Encounter was added
+
+    # Get dashboard
+    dash_res = client.get(reverse("core:dashboard"))
+    assert dash_res.status_code == 200 # Successful
+    assert b"valid" in dash_res.content
+    assert b"candyland" in dash_res.content
+    assert b"funny" in dash_res.content
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"name": "", "location": "candyland", "description": "funny"},
+        {"name": "x"*121, "location": "candyland", "description": "funny"},
+    ],
+)
+def test_add_invalid_encounter_name_rejected(client, payload):
+    response = client.post(reverse("core:add_encounter"), payload)
+    assert response.status_code == 400 # Unsuccessful
+    assert not Encounter.objects.exists() # Encounter was not added
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"name": "valid", "location": "x" * 121, "description": "funny"},
+        {"name": "valid", "location": "x", "description": "x" * 256},
+    ],
+)
+def test_add_invalid_encounter_location_description_length_rejected(client, payload):
+    response = client.post(reverse("core:add_encounter"), payload)
+    assert response.status_code == 400 # Unsuccessful
+    assert not Encounter.objects.exists() # Encounter was not added
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"name": "valid", "location": "x" * 120, "description": "funny"},
+        {"name": "valid", "location": "x", "description": "x" * 255},
+        {"name": "valid", "location": "x", "description": ""},
+        {"name": "valid", "location": "", "description": "x"},
+    ],
+)
+def test_add_valid_encounter_location_description_length_accepted(client, payload):
+    response = client.post(reverse("core:add_encounter"), payload)
+    assert response.status_code == 200 # Successful
+    assert Encounter.objects.exists() # Encounter was added

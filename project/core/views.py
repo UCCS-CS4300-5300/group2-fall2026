@@ -34,7 +34,7 @@ from pypdf.errors import PdfReadError
 from pypdf import PdfReader
 from pypdf.errors import PdfReadError
 
-from .forms import QuestForm
+from .forms import QuestForm, EncounterForm
 from .models import Encounter
 from .models import CharacterEncounter
 from .models import Quest
@@ -183,7 +183,7 @@ def _retrieve_rules_pdf_context(question, pdf_path):
         for _, page_number, text in ranked_chunks[:MAX_RULES_PDF_CHUNKS]
     ]
 
-
+@require_GET
 def encounter(request, encounter_id):
     encounter = get_object_or_404(Encounter, pk=encounter_id)
     character_encounters = CharacterEncounter.objects.filter(encounter__pk=encounter_id)
@@ -198,7 +198,10 @@ def encounter(request, encounter_id):
         }
     )
 
+@require_GET
 def dashboard(request):
+    test_encounter, _ = Encounter.objects.get_or_create(name="test!", location="home", description="This is a test encounter. This is meant to be a sufficiently long description as to test the limits and boundaries of what can be done with this particular template. There is intenitionally meant to be an unreasonable amount of text here.")
+    test_encounter.refresh_from_db()
     encounters = Encounter.objects.annotate(
         player_count=Count("characters", filter=Q(characters__char_type="player")),
         enemy_count=Count("characters", filter=Q(characters__char_type="enemy")),
@@ -210,6 +213,18 @@ def dashboard(request):
             "encounters": encounters
         }
     )
+
+@require_POST
+def add_encounter(request):
+    form = EncounterForm(request.POST)
+    if not form.is_valid():
+        return JsonResponse(form.errors, status=400)
+
+    encounter = form.save()
+
+    # Get HTML response for JavaScript
+    html = render_to_string("core/dashboard_encounter_card.html", {"encounter":encounter})
+    return HttpResponse(html)
 
 @require_GET
 def search_enemy(request):

@@ -1,5 +1,6 @@
 from django import forms
 from .models import Character
+from .models import Encounter
 from .models import Quest
 
 
@@ -46,3 +47,13 @@ class CharacterForm(forms.ModelForm):
             if cleaned_data.get(field_name) is None:
                 cleaned_data[field_name] = 0
         return cleaned_data
+
+# Form for adding new encounter
+class EncounterForm(forms.ModelForm):
+    class Meta:
+        model=Encounter
+        fields=[
+            "name",
+            "location",
+            "description",
+        ]
