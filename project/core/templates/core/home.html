@@ -63,7 +63,12 @@
                     <button class="btn btn-outline-light" id="initBtn">
                         Roll initiative
                     </button>
-                    <button class="btn btn-danger" id="attackBtn" disabled>
+                    <button
+                        class="btn btn-danger"
+                        id="attackBtn"
+                        data-bs-toggle="modal"
+                        data-bs-target="#attackModal"
+                    >
                         Attack
                     </button>
                     <button class="btn btn-outline-light" id="nextBtn" disabled>
@@ -316,6 +321,24 @@
                         <button class="btn btn-brass">Add to encounter</button>
                     </div>
                 </form>
+            </div>
+        </div>
+        <div class="modal fade" id="attackModal" tabindex="-1" aria-labelledby="attackModalTitle" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="modal-title h5" id="attackModalTitle">Attack</h2>
+                        <button
+                            type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"
+                        ></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-secondary mb-0">Attack controls will appear here.</p>
+                    </div>
+                </div>
             </div>
         </div>
 
