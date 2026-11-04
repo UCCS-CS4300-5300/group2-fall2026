@@ -249,6 +249,16 @@ h5,
   z-index: 2;
 }
 
+.encounter-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.encounter-footer {
+    position: relative;
+    margin-top: auto;
+}
+
 .encounter-new {
   min-height: 150px;
   height: 100%;
@@ -283,4 +293,35 @@ h5,
 }
 .encounter-col > .encounter-card {
   flex: 1;
+}
+
+.encounter-card .name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.encounter-preview {
+    font-family: "Alegreya", Georgia, serif;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.encounter-location {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 0.15rem;
+  color: #cacaca;
+  font-size: 1.05rem;
+}
+
+.encounter-description {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: #9a98a6;
+  font-size: 0.8rem;
 }
