@@ -49,3 +49,68 @@ export function rollSavingThrow(combatant, ability, dc) {
     const die = rollDice(20, 1).total;
     return calculateSavingThrow(die, bonus, dc);
 }
+
+export function setupSavingThrowRoller() {
+    const form = document.getElementById("savingThrowForm");
+    const board = document.getElementById("board");
+    if (!form || !board) return;
+
+    const selectedTarget = document.getElementById("savingThrowTarget");
+    const result = document.getElementById("savingThrowResult");
+    const error = document.getElementById("savingThrowError");
+    const log = document.getElementById("log");
+    const abilityLabels = {
+        strength: "Strength",
+        dexterity: "Dexterity",
+        constitution: "Constitution",
+        intelligence: "Intelligence",
+        wisdom: "Wisdom",
+        charisma: "Charisma",
+    };
+    let selectedCombatant = null;
+
+    board.addEventListener("combatant:selected", (event) => {
+        selectedCombatant = event.target.closest(".combatant");
+        const name = selectedCombatant.querySelector(".name")?.textContent.trim();
+        selectedTarget.textContent = `Selected: ${name || "Combatant"}`;
+        result.textContent = "";
+        error.textContent = "";
+    });
+
+    board.addEventListener("combatant:deselected", (event) => {
+        if (event.target !== selectedCombatant) return;
+        selectedCombatant = null;
+        selectedTarget.textContent = "No combatant selected";
+        result.textContent = "";
+        error.textContent = "";
+    });
+
+    form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        result.textContent = "";
+        error.textContent = "";
+
+        try {
+            if (!selectedCombatant) {
+                throw new Error("Select a combatant card before rolling.");
+            }
+
+            const ability = form.elements.namedItem("ability").value;
+            const dc = Number(form.elements.namedItem("dc").value);
+            const savingThrow = rollSavingThrow(selectedCombatant, ability, dc);
+            const name = selectedCombatant.querySelector(".name")?.textContent.trim();
+            const modifier = savingThrow.bonus < 0
+                ? `- ${Math.abs(savingThrow.bonus)}`
+                : `+ ${savingThrow.bonus}`;
+            const message = `${name || "Combatant"} ${abilityLabels[ability]} save: d20 ${savingThrow.die} ${modifier} = ${savingThrow.total} vs DC ${savingThrow.dc} (${savingThrow.success ? "Success" : "Failure"})`;
+            result.textContent = message;
+
+            const entry = document.createElement("p");
+            entry.className = "small mb-2";
+            entry.textContent = message;
+            log.prepend(entry);
+        } catch (rollError) {
+            error.textContent = rollError.message;
+        }
+    });
+}
