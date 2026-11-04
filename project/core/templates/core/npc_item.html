@@ -1,0 +1,19 @@
+<details class="npc-item border rounded p-2 mb-2">
+    <summary class="text-break">{{ npc.name }}</summary>
+    <form method="post" action="{% url 'npcs:detail' npc.pk %}" class="mt-2">
+        {% csrf_token %}
+        <fieldset>
+            <label for="npc-name-{{ npc.pk }}" class="form-label">Name</label>
+            <input id="npc-name-{{ npc.pk }}" name="name" value="{{ npc.name }}" class="form-control form-control-sm mb-2" maxlength="120" required />
+            <label for="npc-notes-{{ npc.pk }}" class="form-label">Notes</label>
+            <textarea id="npc-notes-{{ npc.pk }}" name="notes" class="form-control form-control-sm mb-2" rows="3" maxlength="1000">{{ npc.notes }}</textarea>
+            <button type="submit" class="btn btn-brass btn-sm">Save</button>
+            <details class="mt-2">
+                <summary class="small text-danger">Delete NPC</summary>
+                <p class="small mt-2">Delete this NPC and their notes?</p>
+                <button type="button" class="npc-delete btn btn-sm btn-outline-danger">Confirm delete</button>
+            </details>
+        </fieldset>
+        <p class="npc-error small text-danger mt-2" role="alert"></p>
+    </form>
+</details>
