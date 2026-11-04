@@ -1,4 +1,4 @@
-<li class="list-group-item d-flex align-items-start gap-2" data-url="{% url 'core:quest_detail' quest.pk %}">
+<li class="list-group-item d-flex align-items-start gap-2" data-url="{% url 'core:quest_detail' quest.pk quest.encounter.pk%}">
     <input
         id="quest-{{ quest.pk }}"
         type="checkbox"

@@ -550,7 +550,7 @@ def add_combatant(request, encounter_id):
 
     # Atomically add the "CharacterEncounter linking table"
     with transaction.atomic():
-        encounter, _ = get_object_or_404(Encounter, pk=encounter_id) # This is a placeholder since we only have 1 encounter
+        encounter = get_object_or_404(Encounter, pk=encounter_id)
         character = form.save()
         entry = CharacterEncounter.objects.create(
             character=character,
@@ -587,7 +587,7 @@ def add_quest(request, encounter_id):
         return JsonResponse(form.errors, status=400)
 
     with transaction.atomic():
-        encounter, _ = get_object_or_404(Encounter, pk=encounter_id)
+        encounter = get_object_or_404(Encounter, pk=encounter_id)
         quest = form.save(commit=False)
         quest.encounter = encounter
         quest.save()
