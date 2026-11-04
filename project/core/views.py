@@ -185,6 +185,7 @@ def _retrieve_rules_pdf_context(question, pdf_path):
 
 
 def encounter(request, encounter_id):
+    encounter = get_object_or_404(Encounter, pk=encounter_id)
     character_encounters = CharacterEncounter.objects.filter(encounter__pk=encounter_id)
     return render(
         request,
@@ -192,6 +193,7 @@ def encounter(request, encounter_id):
         {
             "quests": Quest.objects.filter(encounter__pk=encounter_id).order_by("id"),
             "items": character_encounters,
+            "encounter": encounter,
         }
     )
 
