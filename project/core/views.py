@@ -187,11 +187,12 @@ def _retrieve_rules_pdf_context(question, pdf_path):
 def encounter(request, encounter_id):
     encounter = get_object_or_404(Encounter, pk=encounter_id)
     character_encounters = CharacterEncounter.objects.filter(encounter__pk=encounter_id)
+    quests = Quest.objects.filter(encounter__pk=encounter_id).order_by("id")
     return render(
         request,
         "core/encounter.html",
         {
-            "quests": Quest.objects.filter(encounter__pk=encounter_id).order_by("id"),
+            "quests": quests,
             "items": character_encounters,
             "encounter": encounter,
         }
@@ -597,8 +598,8 @@ def add_quest(request, encounter_id):
 
 
 @require_http_methods(["PATCH", "DELETE"])
-def quest_detail(request, quest_id, encounter_id):
-    quest = get_object_or_404(Quest, pk=quest_id, encounter__pk=encounter_id)
+def quest_detail(request, quest_id):
+    quest = get_object_or_404(Quest, pk=quest_id)
     if request.method == "DELETE":
         quest.delete()
         return HttpResponse(status=204)
