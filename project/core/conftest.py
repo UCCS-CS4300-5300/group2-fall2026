@@ -15,6 +15,7 @@ def combatant(encounter):
         character=character,
         encounter=encounter,
         remaining_hp=12,
+        initiative=14,
         x_pos=50,
         y_pos=60,
     )

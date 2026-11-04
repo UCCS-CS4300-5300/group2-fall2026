@@ -44,11 +44,11 @@ def test_add_combatant_saves_character_and_card_on_reload(client, encounter):
     assert entry.y_pos == CharacterEncounter.DEFAULT_Y
     assert f'data-id="{entry.pk}"'.encode() in response.content
 
-    encounter = client.get(reverse("core:encounter", kwargs={"encounter_id": encounter.pk}))
-    assert encounter.status_code == 200
-    assert b"Goblin" in encounter.content
-    assert f'data-id="{entry.pk}"'.encode() in encounter.content
-    assert list(encounter.context["items"]) == [entry]
+    encounter_page = client.get(reverse("core:encounter", kwargs={"encounter_id": encounter.pk}))
+    assert encounter_page.status_code == 200
+    assert b"Goblin" in encounter_page.content
+    assert f'data-id="{entry.pk}"'.encode() in encounter_page.content
+    assert list(encounter_page.context["items"]) == [entry]
 
 
 def test_add_combatant_saves_and_displays_saving_throw_bonuses(client, encounter):
@@ -82,9 +82,9 @@ def test_add_combatant_saves_and_displays_saving_throw_bonuses(client, encounter
     assert b"STR <strong>2</strong>" in response.content
     assert b"DEX <strong>-1</strong>" in response.content
 
-    home = client.get(reverse("core:encounter", kwargs={"encounter_id": encounter.pk}))
-    assert home.status_code == 200
-    assert b"CHA <strong>4</strong>" in home.content
+    encounter_page = client.get(reverse("core:encounter", kwargs={"encounter_id": encounter.pk}))
+    assert encounter_page.status_code == 200
+    assert b"CHA <strong>4</strong>" in encounter_page.content
 
 
 def test_home_add_combatant_form_includes_saving_throw_bonuses(client, encounter):
@@ -139,8 +139,8 @@ def test_move_combatant_persists_position_after_reload(client, combatant):
     assert response.json() == {"x": 175, "y": 220}
     combatant.refresh_from_db()
     assert (combatant.x_pos, combatant.y_pos) == (175, 220)
-    home = client.get(reverse("core:encounter", kwargs={"encounter_id": combatant.encounter.pk}))
-    assert b"left: 175px; top: 220px;" in home.content
+    encounter_page = client.get(reverse("core:encounter", kwargs={"encounter_id": combatant.encounter.pk}))
+    assert b"left: 175px; top: 220px;" in encounter_page.content
 
 
 @pytest.mark.parametrize(
