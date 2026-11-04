@@ -20,7 +20,7 @@ def combatant_enemy(combatant):
 
 def test_add_combatant_saves_character_and_card_on_reload(client, encounter):
     response = client.post(
-        reverse("core:add_combatant"),
+        reverse("core:add_combatant", kwargs={"encounter_id": encounter.pk}),
         {"name": "Goblin", "max_hp": 12, "armor_class": 13},
     )
 
@@ -44,16 +44,16 @@ def test_add_combatant_saves_character_and_card_on_reload(client, encounter):
     assert entry.y_pos == CharacterEncounter.DEFAULT_Y
     assert f'data-id="{entry.pk}"'.encode() in response.content
 
-    home = client.get(reverse("core:home"))
-    assert home.status_code == 200
-    assert b"Goblin" in home.content
-    assert f'data-id="{entry.pk}"'.encode() in home.content
-    assert list(home.context["items"]) == [entry]
+    encounter = client.get(reverse("core:encounter", kwargs={"encounter_id": encounter.pk}))
+    assert encounter.status_code == 200
+    assert b"Goblin" in encounter.content
+    assert f'data-id="{entry.pk}"'.encode() in encounter.content
+    assert list(encounter.context["items"]) == [entry]
 
 
 def test_add_combatant_saves_and_displays_saving_throw_bonuses(client, encounter):
     response = client.post(
-        reverse("core:add_combatant"),
+        reverse("core:add_combatant", kwargs={"encounter_id": encounter.pk}),
         {
             "name": "Ayla",
             "max_hp": 20,
@@ -82,13 +82,13 @@ def test_add_combatant_saves_and_displays_saving_throw_bonuses(client, encounter
     assert b"STR <strong>2</strong>" in response.content
     assert b"DEX <strong>-1</strong>" in response.content
 
-    home = client.get(reverse("core:home"))
+    home = client.get(reverse("core:encounter", kwargs={"encounter_id": encounter.pk}))
     assert home.status_code == 200
     assert b"CHA <strong>4</strong>" in home.content
 
 
 def test_home_add_combatant_form_includes_saving_throw_bonuses(client, encounter):
-    response = client.get(reverse("core:home"))
+    response = client.get(reverse("core:encounter", kwargs={"encounter_id": encounter.pk}))
 
     assert response.status_code == 200
     for field in (
@@ -119,14 +119,13 @@ def test_home_add_combatant_form_includes_saving_throw_bonuses(client, encounter
         ),
     ],
 )
-def test_invalid_combatant_does_not_create_partial_records(client, data, field):
-    response = client.post(reverse("core:add_combatant"), data)
+def test_invalid_combatant_does_not_create_partial_records(client, data, field, encounter):
+    response = client.post(reverse("core:add_combatant", kwargs={"encounter_id": encounter.pk}), data)
 
     assert response.status_code == 400
     assert field in response.json()
     assert not Character.objects.exists()
     assert not CharacterEncounter.objects.exists()
-    assert not Encounter.objects.exists()
 
 
 def test_move_combatant_persists_position_after_reload(client, combatant):
@@ -140,7 +139,7 @@ def test_move_combatant_persists_position_after_reload(client, combatant):
     assert response.json() == {"x": 175, "y": 220}
     combatant.refresh_from_db()
     assert (combatant.x_pos, combatant.y_pos) == (175, 220)
-    home = client.get(reverse("core:home"))
+    home = client.get(reverse("core:encounter", kwargs={"encounter_id": combatant.encounter.pk}))
     assert b"left: 175px; top: 220px;" in home.content
 
 
@@ -171,7 +170,7 @@ def test_move_missing_combatant_returns_404(client):
 
 
 def test_combatant_endpoints_reject_wrong_methods(client, combatant):
-    assert client.get(reverse("core:add_combatant")).status_code == 405
+    assert client.get(reverse("core:add_combatant", kwargs={"encounter_id": combatant.encounter.pk})).status_code == 405
     response = client.post(
         reverse("core:move_combatant", args=[combatant.pk]), {"x": 10, "y": 20}
     )
@@ -210,7 +209,7 @@ def test_default_enemy_type(combatant):
     assert combatant.character.char_type=='enemy'
 
 @pytest.mark.django_db
-def test_add_combatant_sets_type(client):
+def test_add_combatant_sets_type(client, encounter):
     char_form = {
         "name": "test",
         "max_hp": 12,
@@ -218,7 +217,7 @@ def test_add_combatant_sets_type(client):
         "char_type": "player",
     }
 
-    res = client.post(reverse("core:add_combatant"), char_form)
+    res = client.post(reverse("core:add_combatant", kwargs={"encounter_id": encounter.pk}), char_form)
     
     assert res.status_code == 200 # Request went through
     assert Character.objects.filter(name="test").exists() # Character was created
