@@ -162,6 +162,30 @@
                             <p id="diceResult" class="small mt-2 mb-0" role="status" aria-live="polite"></p>
                             <p id="diceError" class="small text-danger mt-2 mb-0" role="alert"></p>
                         </form>
+                        <form id="savingThrowForm" class="mb-3">
+                            <h2 class="h6">Saving throw</h2>
+                            <p id="savingThrowTarget" class="small text-secondary mb-2" role="status" aria-live="polite">No combatant selected</p>
+                            <div class="row g-2 mb-2">
+                                <div class="col-7">
+                                    <label for="savingThrowAbility" class="form-label">Ability</label>
+                                    <select id="savingThrowAbility" name="ability" class="form-select form-select-sm" required>
+                                        <option value="strength">Strength</option>
+                                        <option value="dexterity">Dexterity</option>
+                                        <option value="constitution">Constitution</option>
+                                        <option value="intelligence">Intelligence</option>
+                                        <option value="wisdom">Wisdom</option>
+                                        <option value="charisma">Charisma</option>
+                                    </select>
+                                </div>
+                                <div class="col-5">
+                                    <label for="savingThrowDc" class="form-label">DC</label>
+                                    <input id="savingThrowDc" name="dc" type="number" min="1" step="1" class="form-control form-control-sm" required />
+                                </div>
+                            </div>
+                            <button class="btn btn-brass" type="submit">Roll save</button>
+                            <p id="savingThrowResult" class="small mt-2 mb-0" role="status" aria-live="polite"></p>
+                            <p id="savingThrowError" class="small text-danger mt-2 mb-0" role="alert"></p>
+                        </form>
                         <p class="small text-secondary">Roll history clears when you reload. Rolls do not change HP or initiative.</p>
                         <div id="log"></div>
                     </div>
