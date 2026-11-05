@@ -230,8 +230,6 @@ def get_encounter(request, encounter_id):
 
 @require_GET
 def dashboard(request):
-    test_encounter, _ = Encounter.objects.get_or_create(name="test!", location="home", description="This is a test encounter. This is meant to be a sufficiently long description as to test the limits and boundaries of what can be done with this particular template. There is intenitionally meant to be an unreasonable amount of text here.")
-    test_encounter.refresh_from_db()
     encounters = Encounter.objects.annotate(
         player_count=Count("characters", filter=Q(characters__char_type="player")),
         enemy_count=Count("characters", filter=Q(characters__char_type="enemy")),

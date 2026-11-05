@@ -66,7 +66,7 @@
         <!-- Create encounter modal -->
         <div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="createModalTitle">
             <div class="modal-dialog">
-                <form class="modal-content" id="createForm" method="post" action=""">
+                <form class="modal-content" id="createForm" method="post" action="{% url 'core:add_encounter' %}">
                     {% csrf_token %}
                     <div class="modal-header">
                         <h5 class="modal-title" id="createModalTitle">New encounter</h5>
@@ -83,9 +83,24 @@
                             id="newEncounterName"
                             name="name"
                             class="form-control"
-                            maxlength="100"
+                            maxlength="120"
                             placeholder="Goblin Ambush"
                             required
+                        />
+                        <label class="form-label" for="newEncounterLocation">Location</label>
+                        <input
+                            id="newEncounterLocation"
+                            name="location"
+                            class="form-control"
+                            maxlength="120"
+                        />
+                        <label class="form-label" for="newEncounterDescription">Description</label>
+                        <input
+                            id="newEncounterDescription"
+                            name="description"
+                            class="form-control"
+                            maxlength="255"
+                            placeholder=""
                         />
                         <p id="createError" class="small text-danger mt-2 mb-0" role="alert"></p>
                     </div>
@@ -96,7 +111,7 @@
             </div>
         </div>
 
-        <!-- Delete confirmation modal (one shared modal; JS fills in the name and URL) -->
+        <!-- Delete confirmation modal -->
         <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalTitle">
             <div class="modal-dialog">
                 <form class="modal-content" id="deleteForm" method="post" action="">
