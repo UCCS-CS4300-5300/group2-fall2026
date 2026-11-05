@@ -103,6 +103,15 @@
                         <button
                             class="nav-link"
                             data-bs-toggle="tab"
+                            data-bs-target="#npcTab"
+                        >
+                            NPCs
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button
+                            class="nav-link"
+                            data-bs-toggle="tab"
                             data-bs-target="#aiTab"
                         >
                             AI DM Co-Pilot
@@ -180,6 +189,7 @@
                         </ul>
                         <noscript><p class="small text-danger">Enable JavaScript to manage quests and notes.</p></noscript>
                     </div>
+                    {% include "core/npc_tab.html" %}
                     <div class="tab-pane fade" id="aiTab">
                         <div id="dmMessages" class="chat-messages mb-2" aria-live="polite"></div>
                         <p id="dmChatStatus" class="small text-secondary" role="status"></p>
@@ -321,5 +331,6 @@
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
         <script type="module" src="{% static 'core/js/main.js' %}"></script>
+        <script type="module" src="{% static 'core/js/npcs.js' %}"></script>
     </body>
 </html>

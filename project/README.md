@@ -28,6 +28,16 @@ They do not change combatant stats or dice rolls.
 Run `python manage.py migrate` after pulling this change to add the quest table.
 The Django tests cover saving, completion, deletion, validation, and CSRF.
 
+## NPC tracker
+
+Use the NPCs tab to save a name and notes, then open an entry to edit or delete it.
+Names are required (up to 120 characters); notes are optional (up to 1,000).
+The list is shared across encounters and stays in the database after a reload.
+NPC notes do not add combatants or change quests. The app does not have separate
+campaigns or user accounts yet, so this is one shared notebook.
+
+Run `python manage.py migrate` to add the NPC table.
+
 ## Dice roller
 
 Choose d4, d6, d8, d10, d12, or d20 and roll between 1 and 20 dice. JavaScript

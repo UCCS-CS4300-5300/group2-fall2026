@@ -1,6 +1,13 @@
 from django import forms
 from .models import Character
 from .models import Quest
+from .models import NPC
+
+
+class NPCForm(forms.ModelForm):
+    class Meta:
+        model = NPC
+        fields = ["name", "notes"]
 
 
 class QuestForm(forms.ModelForm):
