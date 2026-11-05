@@ -7,9 +7,9 @@ from .models import NPC
 
 
 @require_http_methods(["GET", "POST"])
-def npcs(request):
+def npcs(request, encounter_id):
     if request.method == "GET":
-        return render(request, "core/npc_list.html", {"npcs": NPC.objects.order_by("id")})
+        return render(request, "core/npc_list.html", {"npcs": NPC.objects.filter(encounter__pk=encounter_id).order_by("id")})
 
     form = NPCForm(request.POST)
     if not form.is_valid():

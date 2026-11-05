@@ -106,7 +106,7 @@ def test_saving_throw_controls_and_combatant_bonus_data_are_rendered(client, com
     combatant.character.dexterity_save_bonus = -2
     combatant.character.save(update_fields=["dexterity_save_bonus"])
 
-    response = client.get(reverse("core:home"))
+    response = client.get(reverse("core:encounter", kwargs={"encounter_id": combatant.encounter.pk}))
 
     assert response.status_code == 200
     assert b'id="savingThrowForm"' in response.content

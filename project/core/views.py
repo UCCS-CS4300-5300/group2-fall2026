@@ -364,7 +364,7 @@ def search_enemy(request):
 
 #
 @require_POST
-def import_enemy(request):
+def import_enemy(request, encounter_id):
     monster_index = request.POST.get("monster_index", "").strip()
 
     if not monster_index:
@@ -387,15 +387,15 @@ def import_enemy(request):
         else 10
     )
 
-    character = Character.objects.create(
-        name = monster.get("name", "Unknown monster"),
-        char_type="enemy",
-        max_hp=monster.get("hit_points") or 1,
-        armor_class=armor_class,
-    )
-
     with transaction.atomic():
-        encounter, _ = Encounter.objects.get_or_create(name="test_encounter")
+        character = Character.objects.create(
+            name = monster.get("name", "Unknown monster"),
+            char_type="enemy",
+            max_hp=monster.get("hit_points") or 1,
+            armor_class=armor_class,
+        )
+        
+        encounter, _ = Encounter.objects.get_or_create(pk=encounter_id)
         entry = CharacterEncounter.objects.create(
             character=character,
             encounter=encounter,
