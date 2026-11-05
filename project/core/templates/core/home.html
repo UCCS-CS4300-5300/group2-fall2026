@@ -71,6 +71,14 @@
                     >
                         Attack
                     </button>
+                    <button
+                        class="btn btn-primary"
+                        id="defendBtn"
+                        data-bs-toggle="modal"
+                        data-bs-target="#defendModal"
+                    >
+                        Defend
+                    </button>
                     <button class="btn btn-outline-light" id="nextBtn" disabled>
                         Next turn
                     </button>
@@ -337,6 +345,24 @@
                     </div>
                     <div class="modal-body">
                         <p class="text-secondary mb-0">Attack controls will appear here.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="defendModal" tabindex="-1" aria-labelledby="defendModalTitle" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="modal-title h5" id="defendModalTitle">Defend</h2>
+                        <button
+                            type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"
+                        ></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-secondary mb-0">Defence controls will appear here.</p>
                     </div>
                 </div>
             </div>
