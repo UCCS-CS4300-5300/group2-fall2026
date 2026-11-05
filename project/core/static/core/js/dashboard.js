@@ -30,6 +30,12 @@ addForm.addEventListener("submit", async (e) => {
         // success: add the new thing to the page
         document.getElementById("encounterGrid").insertAdjacentHTML("beforeend", html);
 
+        //Turn off the "First Encounter" text if exists
+        const firstEncounterMessage = document.getElementById("emptyMsg");
+        if (firstEncounterMessage) {
+            firstEncounterMessage.style.display = "none";
+        }
+
         bootstrap.Modal.getInstance(document.getElementById("createModal")).hide();
     }
 
@@ -56,7 +62,6 @@ delModal.addEventListener("show.bs.modal", (e) => {
     
     delForm.action = url;
     delForm.dataset.encounterId = id 
-    console.log(delForm.action);
 })
 
 delForm.addEventListener("submit", async (e) => {
@@ -75,7 +80,8 @@ delForm.addEventListener("submit", async (e) => {
         })
 
         if (!res.ok) {
-            console.log("Something went wrong!!!")
+            console.log("Something went wrong.")
+            delErrorEl.textContent = "Network error. Try again.";
             return;
         }
 
@@ -95,7 +101,3 @@ delForm.addEventListener("submit", async (e) => {
         submitBtn.disabled = false;
     }
 })
-
-function refreshEncounterGrid() {
-    
-}
