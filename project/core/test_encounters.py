@@ -292,3 +292,117 @@ def test_add_valid_encounter_location_description_length_accepted(client, payloa
     response = client.post(reverse("core:add_encounter"), payload)
     assert response.status_code == 200 # Successful
     assert Encounter.objects.exists() # Encounter was added
+
+def test_delete_encounter(client, encounter):
+    response = client.delete(reverse("core:encounter", kwargs={"encounter_id": encounter.pk}))
+    assert response.status_code == 204 # Successful
+    assert not Encounter.objects.exists() # Encounter is deleted
+
+def test_delete_404_nonexistant_encounter(client):
+    response = client.delete(reverse("core:encounter", kwargs={"encounter_id": 999}))
+    assert response.status_code == 404 # Unsuccessful
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"name": "valid"},
+        {"name": "abc"},
+        {"name": "x"*120},
+    ],
+)
+def test_update_encounter_name_accepts_valid_names(client, encounter, payload):
+    current_name = encounter.name # Save current values
+    current_location = encounter.location
+    current_desc = encounter.description
+    assert encounter.name == current_name
+
+    response = client.patch(reverse("core:encounter", kwargs={"encounter_id": encounter.pk}), payload, 'application/json')
+    assert response.status_code == 200 # Successful
+
+    new_name = payload["name"]
+    encounter.refresh_from_db()
+    assert encounter.name == new_name
+    assert encounter.location == current_location
+    assert encounter.description == current_desc
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"name": ""},
+        {},
+        {"location": ""},
+        {"description": "           "},
+    ],
+)
+def test_update_fields_unchanged_if_empty_or_missing(client, encounter, payload):
+    original_name = encounter.name
+    original_location = encounter.location
+    original_desc = encounter.description
+
+    response = client.patch(reverse("core:encounter", kwargs={"encounter_id": encounter.pk}), payload, 'application/json')
+    assert response.status_code == 200 # Successful
+    assert encounter.name == original_name # Values not updated
+    assert encounter.location == original_location
+    assert encounter.description == original_desc
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"location": "hello"},
+        {"location": "x"*120}
+    ],
+)
+def test_update_encounter_location_accepts_valid_values(client, encounter, payload):
+    current_name = encounter.name # Save current values
+    current_desc = encounter.description
+
+    response = client.patch(reverse("core:encounter", kwargs={"encounter_id": encounter.pk}), payload, 'application/json')
+    assert response.status_code == 200 # Successful
+
+    new_location = payload["location"]
+    encounter.refresh_from_db()
+    assert encounter.name == current_name
+    assert encounter.location == new_location
+    assert encounter.description == current_desc
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"description": "hello"},
+        {"description": "x"*255}
+    ],
+)
+def test_update_encounter_description_accepts_valid_values(client, encounter, payload):
+    current_name = encounter.name # Save current values
+    current_location = encounter.location
+
+    response = client.patch(reverse("core:encounter", kwargs={"encounter_id": encounter.pk}), payload, 'application/json')
+    assert response.status_code == 200 # Successful
+
+    new_description = payload["description"]
+    encounter.refresh_from_db()
+    assert encounter.name == current_name
+    assert encounter.location == current_location
+    assert encounter.description == new_description
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"name": "x"*121, "description": "hello"},
+        {"description": "x"*256},
+        {"location": "x"*121, "name": "new_name"},
+        {"description": "x"*255, "location": "x"*121}
+    ],
+)
+def test_update_encounter_rejects_invalid_requests(client, encounter, payload):
+    current_name = encounter.name # Save current values
+    current_location = encounter.location
+    current_description = encounter.description
+
+    response = client.patch(reverse("core:encounter", kwargs={"encounter_id": encounter.pk}), payload, 'application/json')
+    assert response.status_code == 400 # Unsuccessful
+
+    encounter.refresh_from_db()
+    assert encounter.name == current_name
+    assert encounter.location == current_location
+    assert encounter.description == current_description

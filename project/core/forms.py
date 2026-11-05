@@ -57,3 +57,26 @@ class EncounterForm(forms.ModelForm):
             "location",
             "description",
         ]
+
+    def __init__(self, data=None, partial=False, *args, **kwargs):
+        # Partial data means to ignore empty fields
+        if partial:
+            instance = kwargs.get('instance', None)
+                
+            # If data is submitted and we are updating an existing instance
+            if data and instance:
+                mutable_data = data.copy()
+                
+                for field_name in self.Meta.fields or self.fields:
+                    # If the field was submitted and blank, revert it to the instance's current value
+                    if field_name in mutable_data:
+                        if mutable_data[field_name].strip() == "":
+                            mutable_data[field_name] = getattr(instance, field_name)
+                            
+                    # No field was submitted, use default value
+                    else:
+                        mutable_data[field_name] = mutable_data[field_name] = getattr(instance, field_name)
+                        
+                data = mutable_data
+            
+        super().__init__(data, *args, **kwargs)

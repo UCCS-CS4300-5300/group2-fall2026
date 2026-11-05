@@ -4,7 +4,7 @@ from . import views
 app_name="core"
 urlpatterns=[
     path("",views.dashboard,name="dashboard"), 
-    path("encounter/<int:encounter_id>",views.encounter,name="encounter"), 
+    path("encounter/<int:encounter_id>",views.encounter_detail, name="encounter"), 
     path("encounter/",views.add_encounter,name="add_encounter"),
     path("api/enemies/", views.search_enemy, name="search_enemy"),
     path("chat/", views.chat, name="chat"),
