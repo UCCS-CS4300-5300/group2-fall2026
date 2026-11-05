@@ -1,13 +1,9 @@
-<div class="col-12 col-sm-6 col-lg-4 col-xl-3 encounter-col" data-encounter-col="{{ encounter.id }}">
+<div class="col-12 col-sm-6 col-lg-4 col-xl-3 encounter-col" id="encounter-{{ encounter.id }}" data-encounter-col="{{ encounter.id }}">
     <article
         class="encounter-card"
-        data-id="{{ encounter.id }}"
-        data-name="{{ encounter.name }}"
-        data-open-url="{% url 'core:encounter' encounter.id %}"
-        data-delete-url=""
     >
         <h5 class="name h6 m-0 mb-1">
-            <a href="" class="stretched-link">{{ encounter.name }}</a>
+            <a href="{% url 'core:encounter' encounter.id %}" class="stretched-link">{{ encounter.name }}</a>
         </h5>
 
         {% if encounter.location or encounter.description %}
@@ -39,6 +35,9 @@
                     data-bs-toggle="modal"
                     data-bs-target="#deleteModal"
                     aria-label="Delete {{ encounter.name }}"
+                    data-id="{{ encounter.id }}"
+                    data-name="{{ encounter.name }}"
+                    data-delete-url="{% url 'core:encounter' encounter.id%}"
                 >
                     Delete
                 </button>

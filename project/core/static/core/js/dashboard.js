@@ -1,9 +1,14 @@
 const addForm = document.getElementById("createForm");
-const errorEl = document.getElementById("createError");
+const createErrorEl = document.getElementById("createError");
+
+const delForm = document.getElementById("deleteForm");
+const delModal = document.getElementById("deleteModal")
+const delErrorEl = document.getElementById("deleteError")
+
 
 addForm.addEventListener("submit", async (e) => {
     e.preventDefault(); // Avoid the default behavior
-    errorEl.textContent = "";
+    createErrorEl.textContent = "";
 
     const submitBtn = addForm.querySelector('[type="submit"]')
     submitBtn.disabled = true;
@@ -16,7 +21,7 @@ addForm.addEventListener("submit", async (e) => {
         })
 
         if (!res.ok) {
-            errorEl.textContent = "Something went wrong.";
+            createErrorEl.textContent = "Something went wrong.";
             return;
         }
 
@@ -30,7 +35,7 @@ addForm.addEventListener("submit", async (e) => {
 
     catch (err) {
         console.log(err)
-        errorEl.textContent = "Network error. Try again.";
+        createErrorEl.textContent = "Network error. Try again.";
     }
 
     finally {
@@ -38,3 +43,59 @@ addForm.addEventListener("submit", async (e) => {
         submitBtn.disabled = false;
     }
 })
+
+// When delete modal opens up, fill in information and also the form submit action
+delModal.addEventListener("show.bs.modal", (e) => {
+    const button = e.relatedTarget; // Delete button
+    const name = button.dataset.name;
+    const url = button.dataset.deleteUrl;
+    const id = button.dataset.id;    
+
+    const encounterNameEl = document.getElementById("deleteEncounterName");
+    encounterNameEl.textContent = name;
+    
+    delForm.action = url;
+    delForm.dataset.encounterId = id 
+    console.log(delForm.action);
+})
+
+delForm.addEventListener("submit", async (e) => {
+    e.preventDefault(); // Avoid the default behavior
+    delErrorEl.textContent = "";
+
+    const submitBtn = delForm.querySelector('[type="submit"]')
+    submitBtn.disabled = true;
+
+    const token = document.querySelector("[name=csrfmiddlewaretoken]").value;
+    try {
+        const res = await fetch(delForm.action, {
+            method: "DELETE",
+            body: new FormData(delForm),
+            headers: {'X-CSRFToken': token},
+        })
+
+        if (!res.ok) {
+            console.log("Something went wrong!!!")
+            return;
+        }
+
+        // success: remove the card from the DOM
+        var card = document.getElementById(`encounter-${delForm.dataset.encounterId}`)
+        card.remove()
+        bootstrap.Modal.getInstance(document.getElementById("deleteModal")).hide();
+    }
+
+    catch (err) {
+        console.log(err)
+        delErrorEl.textContent = "Network error. Try again.";
+    }
+
+    finally {
+        delForm.reset();
+        submitBtn.disabled = false;
+    }
+})
+
+function refreshEncounterGrid() {
+    
+}
