@@ -1,7 +1,7 @@
-<div class="tab-pane fade" id="npcTab" data-list-url="{% url 'npcs:list' %}">
+<div class="tab-pane fade" id="npcTab" data-list-url="{% url 'npcs:npc_list' encounter.id %}">
     <h2 class="h6">NPC tracker</h2>
     <p class="small text-secondary">Keep names and notes here for later encounters. Open an NPC to read or edit their notes.</p>
-    <form id="npcForm" method="post" action="{% url 'npcs:list' %}" class="mb-3">
+    <form id="npcForm" method="post" action="{% url 'npcs:npc_list' encounter.id %}" class="mb-3">
         {% csrf_token %}
         <fieldset disabled>
             <label for="npcName" class="form-label">Name</label>

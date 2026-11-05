@@ -213,7 +213,7 @@
                         </ul>
                         <noscript><p class="small text-danger">Enable JavaScript to manage quests and notes.</p></noscript>
                     </div>
-                    {% include "core/npc_tab.html" %}
+                    {% include "core/npc_tab.html" with encounter=encounter %}
                     <div class="tab-pane fade" id="aiTab">
                         <div id="dmMessages" class="chat-messages mb-2" aria-live="polite"></div>
                         <p id="dmChatStatus" class="small text-secondary" role="status"></p>

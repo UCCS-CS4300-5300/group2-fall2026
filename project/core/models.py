@@ -97,6 +97,8 @@ class Quest(models.Model):
 class NPC(models.Model):
     name = models.CharField(max_length=120)
     notes = models.TextField(max_length=1000, blank=True)
+    encounter = models.ForeignKey(
+        Encounter, on_delete=models.CASCADE, related_name="encounter", null=True, blank=True)
 
     def __str__(self):
         return self.name

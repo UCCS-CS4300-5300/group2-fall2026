@@ -262,7 +262,7 @@ def delete_encounter(request, encounter_id):
     try:
         encounter.delete()
     except ProtectedError:
-        return HttpResponse("Encoutner is referenced by other records.", status=409)
+        return HttpResponse("Encounter is referenced by other records.", status=409)
         
     return HttpResponse(status=204)
 

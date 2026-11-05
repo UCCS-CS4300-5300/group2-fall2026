@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_http_methods
 
 from .forms import NPCForm
-from .models import NPC
+from .models import NPC, Encounter
 
 
 @require_http_methods(["GET", "POST"])
@@ -14,6 +14,9 @@ def npcs(request, encounter_id):
     form = NPCForm(request.POST)
     if not form.is_valid():
         return JsonResponse(form.errors, status=400)
+    encounter = get_object_or_404(Encounter, pk=encounter_id)
+    npc=form.save(commit=False)
+    npc.encounter=encounter
     npc = form.save()
     return render(request, "core/npc_item.html", {"npc": npc}, status=201)
 

@@ -1,6 +1,6 @@
 <details class="npc-item border rounded p-2 mb-2">
     <summary class="text-break">{{ npc.name }}</summary>
-    <form method="post" action="{% url 'npcs:detail' npc.pk %}" class="mt-2">
+    <form method="post" action="{% url 'npcs:npc_detail' npc.pk %}" class="mt-2">
         {% csrf_token %}
         <fieldset>
             <label for="npc-name-{{ npc.pk }}" class="form-label">Name</label>

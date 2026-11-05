@@ -172,7 +172,6 @@ def test_chat_requires_post(client):
 
     assert response.status_code == 405
 
-
 @pytest.mark.django_db
 def test_chat_forms_include_chat_type_for_post_submission(client, encounter):
     response = client.get(reverse("core:encounter", kwargs={"encounter_id": encounter.pk}))
