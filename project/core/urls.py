@@ -7,6 +7,7 @@ urlpatterns=[
     path("encounter/<int:encounter_id>",views.encounter_detail, name="encounter"), 
     path("encounter/",views.add_encounter,name="add_encounter"),
     path("api/enemies/", views.search_enemy, name="search_enemy"),
+    path("api/enemies/import/", views.import_enemy, name="import_enemy"),
     path("chat/", views.chat, name="chat"),
     path("encounter/<int:encounter_id>/combatants/", views.add_combatant, name="add_combatant"),
     path("combatants/<int:entry_id>/", views.move_combatant, name="move_combatant"),

@@ -1,0 +1,20 @@
+<div class="tab-pane fade" id="npcTab" data-list-url="{% url 'npcs:list' %}">
+    <h2 class="h6">NPC tracker</h2>
+    <p class="small text-secondary">Keep names and notes here for later encounters. Open an NPC to read or edit their notes.</p>
+    <form id="npcForm" method="post" action="{% url 'npcs:list' %}" class="mb-3">
+        {% csrf_token %}
+        <fieldset disabled>
+            <label for="npcName" class="form-label">Name</label>
+            <input id="npcName" name="name" class="form-control form-control-sm mb-2" maxlength="120" required />
+            <label for="npcNotes" class="form-label">Notes</label>
+            <textarea id="npcNotes" name="notes" class="form-control form-control-sm mb-2" rows="3" maxlength="1000"></textarea>
+            <button type="submit" class="btn btn-brass btn-sm">Add NPC</button>
+        </fieldset>
+        <p class="npc-error small text-danger mt-2" role="alert"></p>
+    </form>
+    <p id="npcStatus" class="small text-secondary" role="status">Loading NPCs...</p>
+    <button id="npcRetry" type="button" class="btn btn-sm btn-outline-light mb-2" hidden>Try again</button>
+    <p id="npcEmpty" class="small text-secondary" hidden>No NPCs saved yet.</p>
+    <div id="npcList"></div>
+    <noscript><p class="small text-danger">Enable JavaScript to manage NPCs.</p></noscript>
+</div>

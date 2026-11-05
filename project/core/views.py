@@ -329,6 +329,7 @@ def search_enemy(request):
 
             # Selecting fields needed by frontend
             monsters.append({
+                "index": monster.get("index"),
                 "name": monster.get("name"),
                 "image": image,
                 "size": monster.get("size"),
@@ -360,6 +361,52 @@ def search_enemy(request):
             status=502,
         )
 
+
+#
+@require_POST
+def import_enemy(request):
+    monster_index = request.POST.get("monster_index", "").strip()
+
+    if not monster_index:
+        return JsonResponse({"error": "Missing monster identifer."}, status=400)
+
+    monster_url = (f"https://www.dnd5eapi.co/api/2014/monsters/{monster_index}")
+
+    try:
+        with urlopen(monster_url, timeout=10) as response:
+            monster = json.loads(response.read().decode("utf-8"))
+    except (HTTPError, URLError, TimeoutError, OSError, ValueError):
+        return JsonResponse(
+            {"error": "Could not retrive this monster from the API."},
+            status=502,
+        )
+
+    armor_classes = monster.get("armor_class", [])
+    armor_class = ( armor_classes[0].get("value", 10)
+        if armor_classes
+        else 10
+    )
+
+    character = Character.objects.create(
+        name = monster.get("name", "Unknown monster"),
+        char_type="enemy",
+        max_hp=monster.get("hit_points") or 1,
+        armor_class=armor_class,
+    )
+
+    with transaction.atomic():
+        encounter, _ = Encounter.objects.get_or_create(name="test_encounter")
+        entry = CharacterEncounter.objects.create(
+            character=character,
+            encounter=encounter,
+            remaining_hp=character.max_hp,
+        )
+
+    html = render_to_string(
+        "core/encounter_combatant_card.html",
+        {"entry": entry},
+    )
+    return HttpResponse(html)
 
 
 @require_POST

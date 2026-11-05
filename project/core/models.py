@@ -92,3 +92,11 @@ class Quest(models.Model):
     )
     text = models.CharField(max_length=500)
     completed = models.BooleanField(default=False)
+
+
+class NPC(models.Model):
+    name = models.CharField(max_length=120)
+    notes = models.TextField(max_length=1000, blank=True)
+
+    def __str__(self):
+        return self.name

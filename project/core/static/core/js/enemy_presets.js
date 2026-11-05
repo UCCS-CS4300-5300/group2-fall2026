@@ -223,6 +223,18 @@ export function setupPreset() {
                     });
                 }
 
+
+                //
+                const importButton = document.createElement("button");
+                importButton.type = "button";
+                importButton.className = "btn btn-brass import-enemy-btn";
+                importButton.textContent = "Import to encounter";
+
+                importButton.dataset.monsterIndex = monster.index;
+
+                body.appendChild(importButton);
+
+
                 // Place contents inside the card
                 card.appendChild(body);
                 results.appendChild(card);
@@ -232,4 +244,57 @@ export function setupPreset() {
             status.textContent = `Error: ${error.message}`;
         }
     });
+
+
+    //
+     results.addEventListener("click", async (event) => {
+        const button = event.target.closest(".import-enemy-btn");
+        if (!button) return;
+
+        button.disabled = true;
+
+        try {
+            const response = await fetch("/api/enemies/import/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "X-CSRFToken": getCookie("csrftoken"),
+                    "X-Requested-With": "XMLHttpRequest",
+                },
+                body: new URLSearchParams({
+                    monster_index: button.dataset.monsterIndex,
+                }),
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                alert(data.error || "Could not import monster.");
+                return;
+            }
+
+            const cardHtml = await response.text();
+            document.getElementById("board").insertAdjacentHTML("beforeend", cardHtml);
+
+            const emptyMsg = document.getElementById("emptyMsg");
+            if (emptyMsg) emptyMsg.style.display = "none";
+        } catch (error) {
+            console.error("Monster import error:", error);
+            alert(error.message || "A network error occured while importing the monster");
+        } finally {
+            button.disabled = false;
+        }
+    });
+}
+
+//
+function getCookie(name) {
+    const cookies = document.cookie.split("; ");
+
+    for (let i = 0; i < cookies.length; i++) {
+        if (cookies[i].startsWith(name + "=")) {
+            return decodeURIComponent(cookies[i].split("=")[1]);
+        }
+    }
+
+    return "";
 }
