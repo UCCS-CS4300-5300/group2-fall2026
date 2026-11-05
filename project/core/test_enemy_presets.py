@@ -15,7 +15,7 @@ def mock_api_response(data):
 
 # Test 1 searching without a query retruns HTTP 400
 def test_search_without_query(client):
-    response = client.get("/api/enemies/")
+    response = client.get(reverse("core:search_enemy"))
 
     assert response.status_code == 200
 
@@ -58,7 +58,8 @@ def test_search_returns_monsters(mock_urlopen, client):
         mock_api_response(monster_details),
     ]
 
-    response = client.get("/api/enemies/?q=Goblin")
+    url = reverse("core:search_enemy")
+    response = client.get(url, {"q": "Goblin"})
 
     assert response.status_code == 200
     data = response.json()
@@ -74,7 +75,7 @@ def test_search_returns_empty_list(mock_urlopen, client):
     })
 
     response = client.get(
-        ("/api/enemies/?q=Goblin")
+        reverse("core:search_enemy")
     )
 
     assert response.status_code == 200
@@ -85,16 +86,19 @@ def test_search_returns_empty_list(mock_urlopen, client):
 @patch("core.views.urlopen")
 def test_api_connection_error_returns_502(mock_urlopen, client):
     mock_urlopen.side_effect = URLError("Connection failed")
-    response = client.get("/api/enemies/?q=Goblin")
+    url = reverse("core:search_enemy")
+    response = client.get(url, {"q": "Goblin"})
 
 # Test 5: POST requests not allowed
 def test_post_request_is_not_allowed(client):
-    response = client.post("/api/enemies/?q=Goblin")
+    url = reverse("core:search_enemy")
+    response = client.post(url, {"q": "Goblin"})
     assert response.status_code == 405
 
 # Test 6: Whitespace only query - confirms .strip() handles blank searches
 def test_search_with_whitespace_query(client):
-    response = client.get("/api/enemies/?q=%20%20%20")
+    url = reverse("core:search_enemy")
+    response = client.get(url, {"q": f"\n\t   "})
 
     assert response.status_code == 200
     assert response.json() == {"monsters": []}
@@ -108,7 +112,8 @@ def test_invaid_api_json(mock_urlopen, client):
 
     mock_urlopen.return_value = mock_response
 
-    response = client.get("/api/enemies/?q=Goblin")
+    url = reverse("core:search_enemy")
+    response = client.get(url, {"q": "Goblin"})
 
     assert response.status_code == 502
 
@@ -124,7 +129,8 @@ def test_api_http_error(mock_urlopen, client):
         fp=None,
     )
 
-    response = client.get("/api/enemies/?q=Goblin")
+    url = reverse("core:search_enemy")
+    response = client.get(url, {"q": "Goblin"})
 
     assert response.status_code == 502
 
@@ -145,7 +151,8 @@ def test_monster_missing_optional_fields(mock_urlopen, client):
         mock_api_response(monster_data),
     ]
 
-    response = client.get("/api/enemies/?q=Goblin")
+    url = reverse("core:search_enemy")
+    response = client.get(url, {"q": "Goblin"})
 
     assert response.status_code == 200
     assert response.json()["monsters"][0]["name"] == "Goblin"
@@ -171,7 +178,8 @@ def test_search_returns_at_most_five_monsters(mock_urlopen, client):
         ],
     ]
 
-    response = client.get("/api/enemies/?q=Monster")
+    url = reverse("core:search_enemy")
+    response = client.get(url, {"q": "Goblin"})
 
     assert response.status_code == 200
     assert len(response.json()["monsters"]) <= 5

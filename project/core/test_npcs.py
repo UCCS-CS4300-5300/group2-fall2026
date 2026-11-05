@@ -10,13 +10,13 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
-def npc():
-    return NPC.objects.create(name="Mira", notes="Innkeeper. Knows the old road.")
+def npc(encounter):
+    return NPC.objects.create(name="Mira", notes="Innkeeper. Knows the old road.", encounter=encounter)
 
 
-def test_add_npc_and_reload_notes(client):
+def test_add_npc_and_reload_notes(client, encounter):
     response = client.post(
-        reverse("npcs:list"),
+        reverse("npcs:npc_list", kwargs={"encounter_id": encounter.pk}),
         {"name": "  Mira  ", "notes": "  Innkeeper. Knows the old road.  "},
     )
 
@@ -24,10 +24,8 @@ def test_add_npc_and_reload_notes(client):
     npc = NPC.objects.get()
     assert npc.name == "Mira"
     assert npc.notes == "Innkeeper. Knows the old road."
-    assert not Character.objects.exists()
-    assert not Encounter.objects.exists()
 
-    reloaded = client.get(reverse("npcs:list"))
+    reloaded = client.get(reverse("npcs:npc_list", kwargs={"encounter_id": encounter.pk}))
     assert reloaded.status_code == 200
     assert list(reloaded.context["npcs"]) == [npc]
     assert npc.name.encode() in reloaded.content
@@ -40,30 +38,30 @@ def test_add_npc_and_reload_notes(client):
     {"name": "x" * 121},
     {"name": "Mira", "notes": "x" * 1001},
 ])
-def test_invalid_npc_is_not_saved(client, data):
-    response = client.post(reverse("npcs:list"), data)
+def test_invalid_npc_is_not_saved(client, data, encounter):
+    response = client.post(reverse("npcs:npc_list", kwargs={"encounter_id": encounter.pk}), data)
 
     assert response.status_code == 400
     assert response.json()
     assert not NPC.objects.exists()
 
 
-def test_name_and_note_length_limits_and_optional_notes(client):
-    response = client.post(reverse("npcs:list"), {"name": "n" * 120, "notes": "x" * 1000})
+def test_name_and_note_length_limits_and_optional_notes(client, encounter):
+    response = client.post(reverse("npcs:npc_list", kwargs={"encounter_id": encounter.pk}), {"name": "n" * 120, "notes": "x" * 1000})
     assert response.status_code == 201
     saved = NPC.objects.get()
     assert saved.name == "n" * 120
     assert saved.notes == "x" * 1000
 
-    response = client.post(reverse("npcs:list"), {"name": "Town guard"})
+    response = client.post(reverse("npcs:npc_list", kwargs={"encounter_id": encounter.pk}), {"name": "Town guard"})
     assert response.status_code == 201
     assert NPC.objects.get(name="Town guard").notes == ""
 
 
-def test_edit_saves_only_the_selected_npc(client, npc):
-    other = NPC.objects.create(name="Town guard", notes="Works at the north gate.")
+def test_edit_saves_only_the_selected_npc(client, npc, encounter):
+    other = NPC.objects.create(name="Town guard", notes="Works at the north gate.", encounter=encounter)
     response = client.post(
-        reverse("npcs:detail", args=[npc.pk]),
+        reverse("npcs:npc_detail", args=[npc.pk]),
         {"name": "Mira Stone", "notes": "Now staying in the next town.\nOwes us a favor."},
     )
 
@@ -74,12 +72,12 @@ def test_edit_saves_only_the_selected_npc(client, npc):
     other.refresh_from_db()
     assert other.name == "Town guard"
     assert other.notes == "Works at the north gate."
-    assert npc.notes.encode() in client.get(reverse("npcs:list")).content
+    assert npc.notes.encode() in client.get(reverse("npcs:npc_list", kwargs={"encounter_id": encounter.pk})).content
 
 
 def test_invalid_edit_keeps_saved_name_and_notes(client, npc):
     response = client.post(
-        reverse("npcs:detail", args=[npc.pk]), {"name": " ", "notes": "Changed"}
+        reverse("npcs:npc_detail", args=[npc.pk]), {"name": " ", "notes": "Changed"}
     )
 
     assert response.status_code == 400
@@ -89,54 +87,31 @@ def test_invalid_edit_keeps_saved_name_and_notes(client, npc):
     assert npc.notes == "Innkeeper. Knows the old road."
 
 
-def test_npcs_stay_available_after_an_encounter_is_deleted(client, npc):
-    first = Encounter.objects.create(name="Forest", location="Woods")
-    second = Encounter.objects.create(name="Town", location="Inn")
-    character = Character.objects.create(name="Fighter", max_hp=20)
-    entry = CharacterEncounter.objects.create(
-        encounter=second, character=character, remaining_hp=12
-    )
-    quest = Quest.objects.create(encounter=second, text="Find the map")
-
-    first.delete()
-    response = client.get(reverse("npcs:list"))
-    assert list(response.context["npcs"]) == [npc]
-    assert npc.notes.encode() in response.content
-    client.post(reverse("npcs:detail", args=[npc.pk]), {"name": "Mira", "notes": "Met again in town."})
-    npc.refresh_from_db()
-    assert npc.notes == "Met again in town."
-    entry.refresh_from_db()
-    quest.refresh_from_db()
-    assert entry.remaining_hp == 12
-    assert quest.text == "Find the map"
-    assert quest.completed is False
-
-
-def test_delete_removes_only_one_npc(client, npc):
-    other = NPC.objects.create(name="Town guard")
-    response = client.delete(reverse("npcs:detail", args=[npc.pk]))
+def test_delete_removes_only_one_npc(client, npc, encounter):
+    other = NPC.objects.create(name="Town guard", encounter=encounter)
+    response = client.delete(reverse("npcs:npc_detail", kwargs={"npc_id": npc.pk}))
 
     assert response.status_code == 204
     assert not NPC.objects.filter(pk=npc.pk).exists()
-    assert list(client.get(reverse("npcs:list")).context["npcs"]) == [other]
+    assert list(client.get(reverse("npcs:npc_list", kwargs={"encounter_id": encounter.pk})).context["npcs"]) == [other]
 
 
 def test_missing_npc_and_wrong_methods_do_not_change_records(client, npc):
-    missing_url = reverse("npcs:detail", args=[npc.pk + 100])
+    missing_url = reverse("npcs:npc_detail", args=[npc.pk + 100])
     assert client.post(missing_url, {"name": "Missing"}).status_code == 404
     assert client.delete(missing_url).status_code == 404
-    assert client.delete(reverse("npcs:list")).status_code == 405
-    assert client.get(reverse("npcs:detail", args=[npc.pk])).status_code == 405
+    assert client.delete(reverse("npcs:npc_list", kwargs={"encounter_id": npc.encounter.pk})).status_code == 405
+    assert client.get(reverse("npcs:npc_detail", args=[npc.pk])).status_code == 405
     assert NPC.objects.count() == 1
 
 
-def test_names_and_notes_are_escaped(client):
+def test_names_and_notes_are_escaped(client, encounter):
     name = '<img src=x onerror="alert(1)">'
     notes = "</textarea><script>alert(1)</script>"
-    response = client.post(reverse("npcs:list"), {"name": name, "notes": notes})
+    response = client.post(reverse("npcs:npc_list", kwargs={"encounter_id": encounter.pk}), {"name": name, "notes": notes})
 
     assert response.status_code == 201
-    for page in (response, client.get(reverse("npcs:list"))):
+    for page in (response, client.get(reverse("npcs:npc_list", kwargs={"encounter_id": encounter.pk}))):
         for text in (name, notes):
             assert text.encode() not in page.content
             assert escape(text).encode() in page.content
@@ -144,8 +119,8 @@ def test_names_and_notes_are_escaped(client):
 
 def test_create_edit_and_delete_require_csrf(npc):
     client = Client(enforce_csrf_checks=True)
-    collection_url = reverse("npcs:list")
-    detail_url = reverse("npcs:detail", args=[npc.pk])
+    collection_url = reverse("npcs:npc_list", kwargs={"encounter_id": npc.encounter.pk})
+    detail_url = reverse("npcs:npc_detail", args=[npc.pk])
 
     assert client.post(collection_url, {"name": "Guard"}).status_code == 403
     assert client.post(detail_url, {"name": "Changed"}).status_code == 403

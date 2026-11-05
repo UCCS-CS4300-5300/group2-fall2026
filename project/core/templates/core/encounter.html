@@ -23,7 +23,7 @@
             <input
                 id="encounterName"
                 class="form-control form-control-sm w-auto"
-                value="Goblin Ambush"
+                value="{{ encounter.name }}"
                 aria-label="Encounter name"
             />
             <span id="turnInfo" class="ms-auto small text-secondary"
@@ -190,7 +190,7 @@
                         <div id="log"></div>
                     </div>
                     <div class="tab-pane fade" id="questTab">
-                        <form id="questForm" class="input-group mb-3" method="post" action="{% url 'core:add_quest' %}">
+                        <form id="questForm" class="input-group mb-3" method="post" action="{% url 'core:add_quest' encounter.pk %}">
                             {% csrf_token %}
                             <input
                                 id="questInput"
@@ -213,7 +213,7 @@
                         </ul>
                         <noscript><p class="small text-danger">Enable JavaScript to manage quests and notes.</p></noscript>
                     </div>
-                    {% include "core/npc_tab.html" %}
+                    {% include "core/npc_tab.html" with encounter=encounter %}
                     <div class="tab-pane fade" id="aiTab">
                         <div id="dmMessages" class="chat-messages mb-2" aria-live="polite"></div>
                         <p id="dmChatStatus" class="small text-secondary" role="status"></p>
@@ -269,7 +269,7 @@
         <!-- Add combatant modal -->
         <div class="modal fade" id="addModal" tabindex="-1">
             <div class="modal-dialog">
-                <form class="modal-content" id="addForm" method="post" action="{% url 'core:add_combatant' %}">
+                <form class="modal-content" id="addForm" method="post" action="{% url 'core:add_combatant' encounter.pk %}">
                     {% csrf_token %}
                     <div class="modal-header">
                         <h5 class="modal-title">Add combatant</h5>

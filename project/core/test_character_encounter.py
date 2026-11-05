@@ -3,21 +3,6 @@ import json
 
 from django.urls import reverse
 
-from .models import Character
-from .models import Encounter
-from .models import CharacterEncounter
-
-@pytest.fixture
-def combatant():
-    character = Character.objects.create(name="Goblin", max_hp=12, armor_class=13)
-    encounter = Encounter.objects.create(name="Forest", location="Trail")
-    return CharacterEncounter.objects.create(
-        character=character,
-        encounter=encounter,
-        remaining_hp=12,
-        x_pos=50,
-        y_pos=60,
-    )
 
 # Tests for updating character HP
 @pytest.mark.django_db
