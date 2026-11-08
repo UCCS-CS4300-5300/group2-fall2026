@@ -76,11 +76,10 @@ export function setupPreset() {
         status.textContent = "Searching for monster...";
         results.replaceChildren();
 
-
         try {
             // Asking Django to search for the monster
             const response = await fetch(
-                `/api/enemies/?q=${encodeURIComponent(query)}`,
+                `${enemySearchForm.action}?q=${encodeURIComponent(query)}`,
                 {
                     headers: {
                         "Accept": "application/json", // Request JSON from Django
