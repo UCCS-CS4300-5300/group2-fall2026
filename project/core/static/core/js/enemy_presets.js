@@ -253,7 +253,7 @@ export function setupPreset() {
         button.disabled = true;
 
         try {
-            const response = await fetch("/api/enemies/import/", {
+            const response = await fetch(results.dataset.importUrl, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded",
