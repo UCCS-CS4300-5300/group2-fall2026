@@ -145,6 +145,17 @@ def test_home_defend_target_picker_lists_encounter_combatants(client, combatant)
     assert response.status_code == 200
     assert b'<option value="">Choose a target...</option>' in response.content
     assert f'<option value="{combatant.pk}">Goblin</option>'.encode() in response.content
+def test_saving_throw_controls_and_combatant_bonus_data_are_rendered(client, combatant):
+    combatant.character.dexterity_save_bonus = -2
+    combatant.character.save(update_fields=["dexterity_save_bonus"])
+
+    response = client.get(reverse("core:home"))
+
+    assert response.status_code == 200
+    assert b'id="savingThrowForm"' in response.content
+    assert b'id="savingThrowDc"' in response.content
+    assert b'data-save-dexterity-bonus="-2"' in response.content
+    assert b'data-save-wisdom-bonus="0"' in response.content
 
 
 @pytest.mark.parametrize(

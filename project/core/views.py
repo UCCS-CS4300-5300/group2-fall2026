@@ -257,6 +257,7 @@ def search_enemy(request):
 
             # Selecting fields needed by frontend
             monsters.append({
+                "index": monster.get("index"),
                 "name": monster.get("name"),
                 "image": image,
                 "size": monster.get("size"),
@@ -288,6 +289,135 @@ def search_enemy(request):
             status=502,
         )
 
+
+#
+@require_POST
+def import_enemy(request):
+    monster_index = request.POST.get("monster_index", "").strip()
+
+    if not monster_index:
+        return JsonResponse({"error": "Missing monster identifer."}, status=400)
+
+    monster_url = (f"https://www.dnd5eapi.co/api/2014/monsters/{monster_index}")
+
+    try:
+        with urlopen(monster_url, timeout=10) as response:
+            monster = json.loads(response.read().decode("utf-8"))
+
+    except (HTTPError, URLError, TimeoutError, OSError, ValueError):
+        return JsonResponse(
+            {"error": "Could not retrive this monster from the API."},
+            status=502,
+        )
+
+    armor_classes = monster.get("armor_class", [])
+    armor_class = ( armor_classes[0].get("value", 10)
+        if armor_classes
+        else 10
+    )
+
+    # Calculate ability modifier using booundaries from models.py
+    def get_modifier(score):
+        for boundary, modifier in Character.ability_score_mod_boundaries.items():
+            if score <= boundary:
+                return modifier
+
+        return 10
+
+    # Calculate non-proficient saving throws
+    abilities = [
+        "strength",
+        "dexterity",
+        "constitution",
+        "intelligence",
+        "wisdom",
+        "charisma",
+    ]
+
+    saving_throws = {}
+
+    for ability in abilities:
+        ability_score = monster.get(ability, 10)
+        saving_throws[ability] = get_modifier(ability_score)
+
+    # Match API ability abbreviations to Character model fields
+    ability_names = {
+        "STR": "strength",
+        "DEX": "dexterity",
+        "CON": "constitution",
+        "INT": "intelligence",
+        "WIS": "wisdom",
+        "CHA": "charisma",
+        "STRENGTH": "strength",
+        "DEXTERITY": "dexterity",
+        "CONSTITUTION": "constitution",
+        "INTELLIGENCE": "intelligence",
+        "WISDOM": "wisdom",
+        "CHARISMA": "charisma",
+    }
+
+    # Extract saving throw bonuses
+    for save in monster.get("proficiencies", []):
+        name = save.get("proficiency", {}).get("name", "")
+
+        if name.startswith("Saving Throw: "):
+            ability = name.replace("Saving Throw: ", "").strip().upper()
+
+            if ability in ability_names:
+                field = ability_names[ability]
+                saving_throws[field] = save.get("value", 0)
+                print("MONSTER ABILITY SCORES:")
+                print({
+                    "strength": monster.get("strength"),
+                    "dexterity": monster.get("dexterity"),
+                    "constitution": monster.get("constitution"),
+                    "intelligence": monster.get("intelligence"),
+                    "wisdom": monster.get("wisdom"),
+                    "charisma": monster.get("charisma"),
+                })
+
+
+    print("CALCULATED SAVING THROWS:", saving_throws)
+
+    # Create char
+    character = Character.objects.create(
+        name = monster.get("name", "Unknown monster"),
+        char_type="enemy",
+        max_hp=monster.get("hit_points") or 1,
+        armor_class=armor_class,
+
+        # Ability scores
+        strength=monster.get("strength", 0),
+        dexterity=monster.get("dexterity", 0),
+        constitution=monster.get("constitution", 0),
+        intelligence=monster.get("intelligence", 0),
+        wisdom=monster.get("wisdom", 0),
+        charisma=monster.get("charisma", 0),
+
+        # Total saving throw modifiers
+        strength_save_bonus=saving_throws["strength"],
+        dexterity_save_bonus= saving_throws["dexterity"],
+        constitution_save_bonus=saving_throws["constitution"],
+        intelligence_save_bonus=saving_throws["intelligence"],
+        wisdom_save_bonus=saving_throws["wisdom"],
+        charisma_save_bonus=saving_throws["charisma"],
+    )
+
+    # Add character to encounter
+    with transaction.atomic():
+        encounter, _ = Encounter.objects.get_or_create(name="test_encounter")
+        entry = CharacterEncounter.objects.create(
+            character=character,
+            encounter=encounter,
+            remaining_hp=character.max_hp,
+        )
+
+    # Return combatant card HTML
+    html = render_to_string(
+        "core/encounter_combatant_card.html",
+        {"entry": entry},
+    )
+    return HttpResponse(html)
 
 
 @require_POST

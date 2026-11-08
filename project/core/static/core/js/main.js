@@ -6,6 +6,7 @@ import { setupSelectableCharacterCard } from "./character_select.js";
 import { setupEditableHp } from "./editable_hp.js";
 import { setupInitiativeRoller } from "./initiative_roller.js";
 import { setupDefend } from "./defend.js";
+import { setupSavingThrowRoller } from "./saving_throws.js";
 
 setupDraggableCharacterCard() //Make character cards draggable
 setupSelectableCharacterCard() // Make character cards selectable
@@ -16,6 +17,7 @@ setupPreset()
 setupEditableHp() // Make character current HP editable
 setupInitiativeRoller()
 setupDefend()
+setupSavingThrowRoller()
 
 //Logic for adding new combatant with the "addForm" element on the home template.
 const addForm = document.getElementById("addForm");
