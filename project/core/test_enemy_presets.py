@@ -201,7 +201,7 @@ def mock_monster_api(monkeypatch, monster_data):
 
 # Test 1: Test Adult Black Dragon saving throws
 @pytest.mark.django_db
-def test_import_adult_black_dragon_saving_throws(client, monkeypatch):
+def test_import_adult_black_dragon_saving_throws(client, monkeypatch, encounter):
     monster_data = {
         "name": "Adult Black Dragon",
         "hit_points": 195,
@@ -223,13 +223,14 @@ def test_import_adult_black_dragon_saving_throws(client, monkeypatch):
     mock_monster_api(monkeypatch, monster_data)
 
     response = client.post(
-        "/api/enemies/import/",
+        reverse("core:import_enemy", kwargs={"encounter_id": encounter.pk}),
         {"monster_index": "adult-black-dragon"},
     )
 
     assert response.status_code == 200
 
-    dragon = Character.objects.get(name="Adult Black Dragon")
+    character_encounter = CharacterEncounter.objects.get(character__name="Adult Black Dragon", encounter__pk=encounter.pk)
+    dragon = character_encounter.character
 
     assert dragon.dexterity_save_bonus == 7
     assert dragon.constitution_save_bonus == 10

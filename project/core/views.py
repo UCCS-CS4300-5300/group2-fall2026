@@ -451,37 +451,30 @@ def import_enemy(request, encounter_id):
 
     print("CALCULATED SAVING THROWS:", saving_throws)
 
-    # Create char
-    character = Character.objects.create(
-        name = monster.get("name", "Unknown monster"),
-        char_type="enemy",
-        max_hp=monster.get("hit_points") or 1,
-        armor_class=armor_class,
-
-        # Ability scores
-        strength=monster.get("strength", 0),
-        dexterity=monster.get("dexterity", 0),
-        constitution=monster.get("constitution", 0),
-        intelligence=monster.get("intelligence", 0),
-        wisdom=monster.get("wisdom", 0),
-        charisma=monster.get("charisma", 0),
-
-        # Total saving throw modifiers
-        strength_save_bonus=saving_throws["strength"],
-        dexterity_save_bonus= saving_throws["dexterity"],
-        constitution_save_bonus=saving_throws["constitution"],
-        intelligence_save_bonus=saving_throws["intelligence"],
-        wisdom_save_bonus=saving_throws["wisdom"],
-        charisma_save_bonus=saving_throws["charisma"],
-    )
-
     # Add character to encounter
     with transaction.atomic():
+        # Create char
         character = Character.objects.create(
             name = monster.get("name", "Unknown monster"),
             char_type="enemy",
             max_hp=monster.get("hit_points") or 1,
             armor_class=armor_class,
+    
+            # Ability scores
+            strength=monster.get("strength", 0),
+            dexterity=monster.get("dexterity", 0),
+            constitution=monster.get("constitution", 0),
+            intelligence=monster.get("intelligence", 0),
+            wisdom=monster.get("wisdom", 0),
+            charisma=monster.get("charisma", 0),
+    
+            # Total saving throw modifiers
+            strength_save_bonus=saving_throws["strength"],
+            dexterity_save_bonus= saving_throws["dexterity"],
+            constitution_save_bonus=saving_throws["constitution"],
+            intelligence_save_bonus=saving_throws["intelligence"],
+            wisdom_save_bonus=saving_throws["wisdom"],
+            charisma_save_bonus=saving_throws["charisma"],
         )
         
         encounter, _ = Encounter.objects.get_or_create(pk=encounter_id)
