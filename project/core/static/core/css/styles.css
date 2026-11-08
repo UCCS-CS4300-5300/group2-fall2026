@@ -212,3 +212,24 @@ h5,
 .nav-tabs .nav-link.active {
   background: var(--ink);
 }
+
+#defendTargetList .list-group-item {
+  background: var(--slate);
+  border-color: #3a3944;
+  color: var(--bone);
+}
+
+.defend-target-name {
+  min-width: 8rem;
+}
+
+.defend-target-traits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+}
+
+.defend-target-traits .form-check {
+  margin: 0;
+  white-space: nowrap;
+}

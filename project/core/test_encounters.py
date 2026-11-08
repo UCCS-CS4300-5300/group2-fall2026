@@ -116,6 +116,37 @@ def test_home_add_combatant_form_includes_saving_throw_bonuses(client):
         assert f'name="{field}"'.encode() in response.content
 
 
+def test_home_defend_modal_includes_damage_target_and_save_controls(client):
+    response = client.get(reverse("core:home"))
+
+    assert response.status_code == 200
+    for control in (
+        b'id="defendDamage"',
+        b'id="defendTargetSelect"',
+        b'id="defendModeAttack"',
+        b'id="defendModeSave"',
+        b'id="defendAttackRoll"',
+        b'id="defendDc"',
+        b'id="halfDamageOnSave"',
+        b'value="strength" checked',
+        b'value="dexterity"',
+        b'value="constitution"',
+        b'value="intelligence"',
+        b'value="wisdom"',
+        b'value="charisma"',
+        b'id="defendTargetList"',
+    ):
+        assert control in response.content
+
+
+def test_home_defend_target_picker_lists_encounter_combatants(client, combatant):
+    response = client.get(reverse("core:home"))
+
+    assert response.status_code == 200
+    assert b'<option value="">Choose a target...</option>' in response.content
+    assert f'<option value="{combatant.pk}">Goblin</option>'.encode() in response.content
+
+
 @pytest.mark.parametrize(
     "data, field",
     [
