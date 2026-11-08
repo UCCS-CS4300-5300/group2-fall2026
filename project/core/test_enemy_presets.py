@@ -243,7 +243,7 @@ def test_import_adult_black_dragon_saving_throws(client, monkeypatch, encounter)
 # Test 2: Testing a monster with no saving throw proficiencies
 # Checks to see if no proficient saves utilize ability modifer
 @pytest.mark.django_db
-def test_import_monster_without_saving_throws(client, monkeypatch):
+def test_import_monster_without_saving_throws(client, monkeypatch, encounter):
     monster_data = {
         "name": "Goblin",
         "hit_points": 7,
@@ -260,7 +260,7 @@ def test_import_monster_without_saving_throws(client, monkeypatch):
     mock_monster_api(monkeypatch, monster_data)
 
     response = client.post(
-        "/api/enemies/import/",
+        reverse("core:import_enemy", kwargs={"encounter_id": encounter.pk}),
         {"monster_index": "goblin"},
     )
 
@@ -279,7 +279,7 @@ def test_import_monster_without_saving_throws(client, monkeypatch):
 # Checks if the proficient saving throws use API and 
 # other saving throws use normal ability modifers
 @pytest.mark.django_db
-def test_import_partial_saving_throws(client, monkeypatch):
+def test_import_partial_saving_throws(client, monkeypatch, encounter):
     monster_data = {
         "name": "Test Monster",
         "hit_points": 30,
@@ -299,7 +299,7 @@ def test_import_partial_saving_throws(client, monkeypatch):
     mock_monster_api(monkeypatch, monster_data)
 
     response = client.post(
-        "/api/enemies/import/",
+        reverse("core:import_enemy", kwargs={"encounter_id": encounter.pk}),
         {"monster_index": "goblin"},
     )
 
@@ -317,7 +317,7 @@ def test_import_partial_saving_throws(client, monkeypatch):
 # Test 4: Negative saving throw bonus
 # Checks if negative saving throws are correctly imported.
 @pytest.mark.django_db
-def test_import_negative_saving_throw(client, monkeypatch):
+def test_import_negative_saving_throw(client, monkeypatch, encounter):
     monster_data = {
         "name": "Test Monster",
         "hit_points": 20,
@@ -336,7 +336,7 @@ def test_import_negative_saving_throw(client, monkeypatch):
     mock_monster_api(monkeypatch, monster_data)
 
     response = client.post(
-        "/api/enemies/import/",
+        reverse("core:import_enemy", kwargs={"encounter_id": encounter.pk}),
         {"monster_index": "test-monster"},
     )
     assert response.status_code == 200
@@ -349,8 +349,8 @@ def test_import_negative_saving_throw(client, monkeypatch):
 # Test 5: missing monster index
 # Checks if import rejects the request that has no index
 @pytest.mark.django_db
-def test_import_missing_index(client):
-    response = client.post("/api/enemies/import/", {})
+def test_import_missing_index(client, encounter):
+    response = client.post(reverse("core:import_enemy", kwargs={"encounter_id": encounter.pk}), {})
 
     assert response.status_code == 400
     assert Character.objects.count() == 0
@@ -358,14 +358,14 @@ def test_import_missing_index(client):
 # Test 6: API error
 # Checks
 @pytest.mark.django_db
-def test_import_api_error(client, monkeypatch):
+def test_import_api_error(client, monkeypatch, encounter):
     def fake_urlopen(url, timeout=10):
         raise HTTPError(url, 404, "Not Found", {}, None)
 
     monkeypatch.setattr("core.views.urlopen", fake_urlopen)
 
     response = client.post(
-        "/api/enemies/import/",
+        reverse("core:import_enemy", kwargs={"encounter_id": encounter.pk}),
         {"monster_index": "invalid-monster"},
     )
 
@@ -375,7 +375,7 @@ def test_import_api_error(client, monkeypatch):
 # Test 7: Test ability modifer boundary
 # Check if get_modifer calculation handles boundary values
 @pytest.mark.django_db
-def test_import_ability_modifier_boundary(client, monkeypatch):
+def test_import_ability_modifier_boundary(client, monkeypatch, encounter):
     monster_data = {
         "name": "Boundary Monster",
         "hit_points": 50,
@@ -392,7 +392,7 @@ def test_import_ability_modifier_boundary(client, monkeypatch):
     mock_monster_api(monkeypatch, monster_data)
 
     response = client.post(
-        "/api/enemies/import/",
+        reverse("core:import_enemy", kwargs={"encounter_id": encounter.pk}),
         {"monster_index": "boundary-monster"},
     )
 
@@ -410,7 +410,7 @@ def test_import_ability_modifier_boundary(client, monkeypatch):
 # Test 8: Adult Bronze Dragon saving throws
 # This checks another combination of ability and proficiencies
 @pytest.mark.django_db
-def test_import_adult_bronze_dragon_saves(client, monkeypatch):
+def test_import_adult_bronze_dragon_saves(client, monkeypatch, encounter):
     monster_data = {
         "name": "Adult Bronze Dragon",
         "hit_points": 212,
@@ -432,7 +432,7 @@ def test_import_adult_bronze_dragon_saves(client, monkeypatch):
     mock_monster_api(monkeypatch, monster_data)
 
     response = client.post(
-        "/api/enemies/import/",
+        reverse("core:import_enemy", kwargs={"encounter_id": encounter.pk}),
         {"monster_index": "boundary-monster"},
     )
 
@@ -452,7 +452,7 @@ def test_import_adult_bronze_dragon_saves(client, monkeypatch):
 # Checks if the missing score defaults to 10 and 
 # displays modifer of 0
 @pytest.mark.django_db
-def test_import_missing_ability_scores(client, monkeypatch):
+def test_import_missing_ability_scores(client, monkeypatch, encounter):
     monster_data = {
         "name": "Missing Stats Monster",
         "hit_points": 20,
@@ -463,7 +463,7 @@ def test_import_missing_ability_scores(client, monkeypatch):
     mock_monster_api(monkeypatch, monster_data)
 
     response = client.post(
-        "/api/enemies/import/",
+        reverse("core:import_enemy", kwargs={"encounter_id": encounter.pk}),
         {"monster_index": "missing-stats"},
     )
 
@@ -482,7 +482,7 @@ def test_import_missing_ability_scores(client, monkeypatch):
 # Test 10: Missing armor class
 # Checks if a monster with no armor class defaults to 10
 @pytest.mark.django_db
-def test_import_missing_armor_class(client, monkeypatch):
+def test_import_missing_armor_class(client, monkeypatch, encounter):
     monster_data = {
         "name": "No Armor Monster",
         "hit_points": 20,
@@ -498,7 +498,7 @@ def test_import_missing_armor_class(client, monkeypatch):
     mock_monster_api(monkeypatch, monster_data)
 
     response = client.post(
-        "/api/enemies/import/",
+        reverse("core:import_enemy", kwargs={"encounter_id": encounter.pk}),
         {"monster_index": "no-armor"},
     )
 
@@ -511,7 +511,7 @@ def test_import_missing_armor_class(client, monkeypatch):
 # Test 11: Missing hit points
 # Checks if a monster without hit points defaults to 0
 @pytest.mark.django_db
-def test_import_missing_hit_points(client, monkeypatch):
+def test_import_missing_hit_points(client, monkeypatch, encounter):
     monster_data = {
         "name": "No HP Monster",
         "armor_class": [{"value": 12}],
@@ -527,7 +527,7 @@ def test_import_missing_hit_points(client, monkeypatch):
     mock_monster_api(monkeypatch, monster_data)
 
     response = client.post(
-        "/api/enemies/import/",
+        reverse("core:import_enemy", kwargs={"encounter_id": encounter.pk}),
         {"monster_index": "no-hp"},
     )
 
@@ -540,7 +540,7 @@ def test_import_missing_hit_points(client, monkeypatch):
 
 # Test 12: Import creates combantant card
 @pytest.mark.django_db
-def test_import_returns_combatant_card(client, monkeypatch):
+def test_import_returns_combatant_card(client, monkeypatch, encounter):
     monster_data = {
         "name": "Test Dragon",
         "hit_points": 100,
@@ -557,7 +557,7 @@ def test_import_returns_combatant_card(client, monkeypatch):
     mock_monster_api(monkeypatch, monster_data)
 
     response = client.post(
-        "/api/enemies/import/",
+        reverse("core:import_enemy", kwargs={"encounter_id": encounter.pk}),
         {"monster_index": "test-dragon"},
     )
 
