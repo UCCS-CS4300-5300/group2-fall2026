@@ -30,8 +30,8 @@ class PageForms(HTMLParser):
 
 
 @pytest.mark.django_db
-def test_home_has_dice_choices_and_count_limits(client):
-    response = client.get(reverse("core:home"))
+def test_home_has_dice_choices_and_count_limits(client, encounter):
+    response = client.get(reverse("core:encounter", kwargs={"encounter_id": encounter.pk}))
 
     assert response.status_code == 200
     form = PageForms(response.content.decode()).forms["diceForm"]
@@ -48,13 +48,13 @@ def test_home_has_dice_choices_and_count_limits(client):
 
 
 @pytest.mark.django_db
-def test_combatant_changes_still_require_the_token_from_the_page():
+def test_combatant_changes_still_require_the_token_from_the_page(encounter):
     client = Client(enforce_csrf_checks=True)
-    add_url = reverse("core:add_combatant")
+    add_url = reverse("core:add_combatant", kwargs={"encounter_id": encounter.pk})
     data = {"name": "Goblin", "max_hp": 12, "armor_class": 13}
 
     assert client.post(add_url, data).status_code == 403
-    response = client.get(reverse("core:home"))
+    response = client.get(reverse("core:encounter", kwargs={"encounter_id": encounter.pk}))
     form = PageForms(response.content.decode()).forms["addForm"]
     token = next(attrs["value"] for tag, attrs in form if attrs.get("name") == "csrfmiddlewaretoken")
     response = client.post(add_url, {**data, "csrfmiddlewaretoken": token})

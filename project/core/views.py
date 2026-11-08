@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.db import transaction
+from django.db.models import Count, Q, ProtectedError
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST, require_http_methods, require_GET
 from urllib.error import HTTPError, URLError
@@ -33,7 +34,7 @@ from pypdf.errors import PdfReadError
 from pypdf import PdfReader
 from pypdf.errors import PdfReadError
 
-from .forms import QuestForm
+from .forms import QuestForm, EncounterForm
 from .models import Encounter
 from .models import CharacterEncounter
 from .models import Quest
@@ -182,17 +183,88 @@ def _retrieve_rules_pdf_context(question, pdf_path):
         for _, page_number, text in ranked_chunks[:MAX_RULES_PDF_CHUNKS]
     ]
 
+@require_http_methods(["GET", "DELETE", "PATCH"])
+def encounter_detail(request, encounter_id):
+    if request.method == "GET":
+        return get_encounter(request, encounter_id)
+    if request.method == "DELETE":
+        return delete_encounter(request, encounter_id)
+    if request.method == "PATCH":
+        return update_encounter(request, encounter_id)
 
-def home(request):
-    entries = CharacterEncounter.objects.all()
+@require_http_methods(["PATCH"])
+def update_encounter(request, encounter_id):
+    # Empty request body means no-op
+    if not request.body.strip():
+        return HttpResponse(status=200)
+    encounter = get_object_or_404(Encounter, pk=encounter_id)
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Unable to parse body as JSON"}, status=400) # Some other error
+    # Empty dict means no-op
+    if not data:
+        return HttpResponse(status=200)
+    
+    form = EncounterForm(data, partial=True, instance=encounter)
+    if not form.is_valid():
+        return JsonResponse(form.errors, status=400)
+
+    encounter = form.save()
+    return HttpResponse(status=200)
+
+@require_GET
+def get_encounter(request, encounter_id):
+    encounter = get_object_or_404(Encounter, pk=encounter_id)
+    character_encounters = CharacterEncounter.objects.filter(encounter__pk=encounter_id)
+    quests = Quest.objects.filter(encounter__pk=encounter_id).order_by("id")
     return render(
         request,
-        "core/home.html",
+        "core/encounter.html",
         {
-            "quests": Quest.objects.filter(encounter__name="test_encounter").order_by("id"),
-            "items": entries,
+            "quests": quests,
+            "items": character_encounters,
+            "encounter": encounter,
         }
     )
+
+@require_GET
+def dashboard(request):
+    encounters = Encounter.objects.annotate(
+        player_count=Count("characters", filter=Q(characters__char_type="player")),
+        enemy_count=Count("characters", filter=Q(characters__char_type="enemy")),
+    )
+    return render(
+        request,
+        "core/dashboard.html",
+        {
+            "encounters": encounters
+        }
+    )
+
+@require_POST
+def add_encounter(request):
+    form = EncounterForm(request.POST)
+    if not form.is_valid():
+        return JsonResponse(form.errors, status=400)
+
+    encounter = form.save()
+
+    # Get HTML response for JavaScript
+    html = render_to_string("core/dashboard_encounter_card.html", {"encounter":encounter})
+    return HttpResponse(html)
+
+@require_http_methods(["DELETE"])
+def delete_encounter(request, encounter_id):
+    encounter = get_object_or_404(Encounter, pk=encounter_id)
+    
+    # Deletes encounter
+    try:
+        encounter.delete()
+    except ProtectedError:
+        return HttpResponse("Encounter is referenced by other records.", status=409)
+        
+    return HttpResponse(status=204)
 
 @require_GET
 def search_enemy(request):
@@ -292,7 +364,7 @@ def search_enemy(request):
 
 #
 @require_POST
-def import_enemy(request):
+def import_enemy(request, encounter_id):
     monster_index = request.POST.get("monster_index", "").strip()
 
     if not monster_index:
@@ -379,33 +451,33 @@ def import_enemy(request):
 
     print("CALCULATED SAVING THROWS:", saving_throws)
 
-    # Create char
-    character = Character.objects.create(
-        name = monster.get("name", "Unknown monster"),
-        char_type="enemy",
-        max_hp=monster.get("hit_points") or 1,
-        armor_class=armor_class,
-
-        # Ability scores
-        strength=monster.get("strength", 0),
-        dexterity=monster.get("dexterity", 0),
-        constitution=monster.get("constitution", 0),
-        intelligence=monster.get("intelligence", 0),
-        wisdom=monster.get("wisdom", 0),
-        charisma=monster.get("charisma", 0),
-
-        # Total saving throw modifiers
-        strength_save_bonus=saving_throws["strength"],
-        dexterity_save_bonus= saving_throws["dexterity"],
-        constitution_save_bonus=saving_throws["constitution"],
-        intelligence_save_bonus=saving_throws["intelligence"],
-        wisdom_save_bonus=saving_throws["wisdom"],
-        charisma_save_bonus=saving_throws["charisma"],
-    )
-
     # Add character to encounter
     with transaction.atomic():
-        encounter, _ = Encounter.objects.get_or_create(name="test_encounter")
+        # Create char
+        character = Character.objects.create(
+            name = monster.get("name", "Unknown monster"),
+            char_type="enemy",
+            max_hp=monster.get("hit_points") or 1,
+            armor_class=armor_class,
+    
+            # Ability scores
+            strength=monster.get("strength", 0),
+            dexterity=monster.get("dexterity", 0),
+            constitution=monster.get("constitution", 0),
+            intelligence=monster.get("intelligence", 0),
+            wisdom=monster.get("wisdom", 0),
+            charisma=monster.get("charisma", 0),
+    
+            # Total saving throw modifiers
+            strength_save_bonus=saving_throws["strength"],
+            dexterity_save_bonus= saving_throws["dexterity"],
+            constitution_save_bonus=saving_throws["constitution"],
+            intelligence_save_bonus=saving_throws["intelligence"],
+            wisdom_save_bonus=saving_throws["wisdom"],
+            charisma_save_bonus=saving_throws["charisma"],
+        )
+        
+        encounter, _ = Encounter.objects.get_or_create(pk=encounter_id)
         entry = CharacterEncounter.objects.create(
             character=character,
             encounter=encounter,
@@ -656,7 +728,7 @@ def chat(request):
 
 # View to add combatant to encounter.
 @require_POST
-def add_combatant(request):
+def add_combatant(request, encounter_id):
     # TODO: This creates a new character every single time. In the future, we might want to have this allow a repeat character/character type.
     form=CharacterForm(request.POST)
     if not form.is_valid():
@@ -664,7 +736,7 @@ def add_combatant(request):
 
     # Atomically add the "CharacterEncounter linking table"
     with transaction.atomic():
-        encounter, _ = Encounter.objects.get_or_create(name="test_encounter") # This is a placeholder since we only have 1 encounter
+        encounter = get_object_or_404(Encounter, pk=encounter_id)
         character = form.save()
         entry = CharacterEncounter.objects.create(
             character=character,
@@ -695,13 +767,13 @@ def move_combatant(request, entry_id):
 
 
 @require_POST
-def add_quest(request):
+def add_quest(request, encounter_id):
     form = QuestForm(request.POST)
     if not form.is_valid():
         return JsonResponse(form.errors, status=400)
 
     with transaction.atomic():
-        encounter, _ = Encounter.objects.get_or_create(name="test_encounter")
+        encounter = get_object_or_404(Encounter, pk=encounter_id)
         quest = form.save(commit=False)
         quest.encounter = encounter
         quest.save()
@@ -712,7 +784,7 @@ def add_quest(request):
 
 @require_http_methods(["PATCH", "DELETE"])
 def quest_detail(request, quest_id):
-    quest = get_object_or_404(Quest, pk=quest_id, encounter__name="test_encounter")
+    quest = get_object_or_404(Quest, pk=quest_id)
     if request.method == "DELETE":
         quest.delete()
         return HttpResponse(status=204)

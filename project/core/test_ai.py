@@ -172,10 +172,9 @@ def test_chat_requires_post(client):
 
     assert response.status_code == 405
 
-
 @pytest.mark.django_db
-def test_chat_forms_include_chat_type_for_post_submission(client):
-    response = client.get(reverse("core:home"))
+def test_chat_forms_include_chat_type_for_post_submission(client, encounter):
+    response = client.get(reverse("core:encounter", kwargs={"encounter_id": encounter.pk}))
 
     assert response.status_code == 200
     assert b'name="chat_type" value="dm"' in response.content
@@ -183,7 +182,7 @@ def test_chat_forms_include_chat_type_for_post_submission(client):
 
 
 @pytest.mark.django_db
-def test_chat_requires_csrf_token():
+def test_chat_requires_csrf_token(encounter):
     from django.test import Client
 
     client = Client(enforce_csrf_checks=True)
@@ -191,7 +190,7 @@ def test_chat_requires_csrf_token():
 
     assert client.post(reverse("core:chat"), data).status_code == 403
 
-    client.get(reverse("core:home"))
+    client.get(reverse("core:encounter", kwargs={"encounter_id": encounter.pk}))
     token = client.cookies["csrftoken"].value
     with patch("core.views.urlopen") as urlopen:
         urlopen.return_value.__enter__.return_value.read.return_value = json.dumps({

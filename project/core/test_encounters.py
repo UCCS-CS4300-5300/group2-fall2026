@@ -6,19 +6,6 @@ from .models import Character, CharacterEncounter, Encounter
 
 pytestmark = pytest.mark.django_db
 
-
-@pytest.fixture
-def combatant():
-    character = Character.objects.create(name="Goblin", max_hp=12, armor_class=13)
-    encounter = Encounter.objects.create(name="Forest", location="Trail")
-    return CharacterEncounter.objects.create(
-        character=character,
-        encounter=encounter,
-        remaining_hp=12,
-        x_pos=50,
-        y_pos=60,
-    )
-
 @pytest.fixture
 def combatant_player(combatant):
     c = combatant
@@ -31,15 +18,14 @@ def combatant_enemy(combatant):
     c.char_type="enemy"
     return c
 
-def test_add_combatant_saves_character_and_card_on_reload(client):
+def test_add_combatant_saves_character_and_card_on_reload(client, encounter):
     response = client.post(
-        reverse("core:add_combatant"),
+        reverse("core:add_combatant", kwargs={"encounter_id": encounter.pk}),
         {"name": "Goblin", "max_hp": 12, "armor_class": 13},
     )
 
     assert response.status_code == 200
     assert Character.objects.count() == 1
-    assert Encounter.objects.count() == 1
     entry = CharacterEncounter.objects.select_related("character").get()
     assert entry.character.name == "Goblin"
     assert entry.character.max_hp == 12
@@ -58,16 +44,16 @@ def test_add_combatant_saves_character_and_card_on_reload(client):
     assert entry.y_pos == CharacterEncounter.DEFAULT_Y
     assert f'data-id="{entry.pk}"'.encode() in response.content
 
-    home = client.get(reverse("core:home"))
-    assert home.status_code == 200
-    assert b"Goblin" in home.content
-    assert f'data-id="{entry.pk}"'.encode() in home.content
-    assert list(home.context["items"]) == [entry]
+    encounter_page = client.get(reverse("core:encounter", kwargs={"encounter_id": encounter.pk}))
+    assert encounter_page.status_code == 200
+    assert b"Goblin" in encounter_page.content
+    assert f'data-id="{entry.pk}"'.encode() in encounter_page.content
+    assert list(encounter_page.context["items"]) == [entry]
 
 
-def test_add_combatant_saves_and_displays_saving_throw_bonuses(client):
+def test_add_combatant_saves_and_displays_saving_throw_bonuses(client, encounter):
     response = client.post(
-        reverse("core:add_combatant"),
+        reverse("core:add_combatant", kwargs={"encounter_id": encounter.pk}),
         {
             "name": "Ayla",
             "max_hp": 20,
@@ -96,13 +82,13 @@ def test_add_combatant_saves_and_displays_saving_throw_bonuses(client):
     assert b"STR <strong>2</strong>" in response.content
     assert b"DEX <strong>-1</strong>" in response.content
 
-    home = client.get(reverse("core:home"))
-    assert home.status_code == 200
-    assert b"CHA <strong>4</strong>" in home.content
+    encounter_page = client.get(reverse("core:encounter", kwargs={"encounter_id": encounter.pk}))
+    assert encounter_page.status_code == 200
+    assert b"CHA <strong>4</strong>" in encounter_page.content
 
 
-def test_home_add_combatant_form_includes_saving_throw_bonuses(client):
-    response = client.get(reverse("core:home"))
+def test_home_add_combatant_form_includes_saving_throw_bonuses(client, encounter):
+    response = client.get(reverse("core:encounter", kwargs={"encounter_id": encounter.pk}))
 
     assert response.status_code == 200
     for field in (
@@ -149,7 +135,7 @@ def test_saving_throw_controls_and_combatant_bonus_data_are_rendered(client, com
     combatant.character.dexterity_save_bonus = -2
     combatant.character.save(update_fields=["dexterity_save_bonus"])
 
-    response = client.get(reverse("core:home"))
+    response = client.get(reverse("core:encounter", kwargs={"encounter_id": combatant.encounter.pk}))
 
     assert response.status_code == 200
     assert b'id="savingThrowForm"' in response.content
@@ -175,14 +161,13 @@ def test_saving_throw_controls_and_combatant_bonus_data_are_rendered(client, com
         ),
     ],
 )
-def test_invalid_combatant_does_not_create_partial_records(client, data, field):
-    response = client.post(reverse("core:add_combatant"), data)
+def test_invalid_combatant_does_not_create_partial_records(client, data, field, encounter):
+    response = client.post(reverse("core:add_combatant", kwargs={"encounter_id": encounter.pk}), data)
 
     assert response.status_code == 400
     assert field in response.json()
     assert not Character.objects.exists()
     assert not CharacterEncounter.objects.exists()
-    assert not Encounter.objects.exists()
 
 
 def test_move_combatant_persists_position_after_reload(client, combatant):
@@ -196,8 +181,8 @@ def test_move_combatant_persists_position_after_reload(client, combatant):
     assert response.json() == {"x": 175, "y": 220}
     combatant.refresh_from_db()
     assert (combatant.x_pos, combatant.y_pos) == (175, 220)
-    home = client.get(reverse("core:home"))
-    assert b"left: 175px; top: 220px;" in home.content
+    encounter_page = client.get(reverse("core:encounter", kwargs={"encounter_id": combatant.encounter.pk}))
+    assert b"left: 175px; top: 220px;" in encounter_page.content
 
 
 @pytest.mark.parametrize(
@@ -227,7 +212,7 @@ def test_move_missing_combatant_returns_404(client):
 
 
 def test_combatant_endpoints_reject_wrong_methods(client, combatant):
-    assert client.get(reverse("core:add_combatant")).status_code == 405
+    assert client.get(reverse("core:add_combatant", kwargs={"encounter_id": combatant.encounter.pk})).status_code == 405
     response = client.post(
         reverse("core:move_combatant", args=[combatant.pk]), {"x": 10, "y": 20}
     )
@@ -266,7 +251,7 @@ def test_default_enemy_type(combatant):
     assert combatant.character.char_type=='enemy'
 
 @pytest.mark.django_db
-def test_add_combatant_sets_type(client):
+def test_add_combatant_sets_type(client, encounter):
     char_form = {
         "name": "test",
         "max_hp": 12,
@@ -274,8 +259,192 @@ def test_add_combatant_sets_type(client):
         "char_type": "player",
     }
 
-    res = client.post(reverse("core:add_combatant"), char_form)
+    res = client.post(reverse("core:add_combatant", kwargs={"encounter_id": encounter.pk}), char_form)
     
     assert res.status_code == 200 # Request went through
     assert Character.objects.filter(name="test").exists() # Character was created
     assert Character.objects.get(name="test").char_type == "player"
+
+def test_empty_encounter_does_not_create_an_encounter(client):
+    response = client.get(reverse("core:encounter", kwargs={"encounter_id": 999}))
+
+    assert response.status_code == 404 # No encounter exists, this should 404
+    assert not Encounter.objects.exists()
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"name": "valid", "location": "candyland", "description": "funny"},
+        {"name": "x" * 120, "location": "candyland", "description": "funny"},
+    ],
+)
+def test_add_valid_encounter_creates_new_encounter(client, payload):
+    print(payload)
+    response = client.post(reverse("core:add_encounter"), payload)
+    assert response.status_code == 200 # Successful
+    assert Encounter.objects.exists() # Encounter was added
+
+def test_add_valid_encounter_shows_on_dashboard(client):
+    payload = {"name": "valid", "location": "candyland", "description": "funny"}
+    response = client.post(reverse("core:add_encounter"), payload)
+    assert response.status_code == 200 # Successful
+    assert Encounter.objects.exists() # Encounter was added
+
+    # Get dashboard
+    dash_res = client.get(reverse("core:dashboard"))
+    assert dash_res.status_code == 200 # Successful
+    assert b"valid" in dash_res.content
+    assert b"candyland" in dash_res.content
+    assert b"funny" in dash_res.content
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"name": "", "location": "candyland", "description": "funny"},
+        {"name": "x"*121, "location": "candyland", "description": "funny"},
+    ],
+)
+def test_add_invalid_encounter_name_rejected(client, payload):
+    response = client.post(reverse("core:add_encounter"), payload)
+    assert response.status_code == 400 # Unsuccessful
+    assert not Encounter.objects.exists() # Encounter was not added
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"name": "valid", "location": "x" * 121, "description": "funny"},
+        {"name": "valid", "location": "x", "description": "x" * 256},
+    ],
+)
+def test_add_invalid_encounter_location_description_length_rejected(client, payload):
+    response = client.post(reverse("core:add_encounter"), payload)
+    assert response.status_code == 400 # Unsuccessful
+    assert not Encounter.objects.exists() # Encounter was not added
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"name": "valid", "location": "x" * 120, "description": "funny"},
+        {"name": "valid", "location": "x", "description": "x" * 255},
+        {"name": "valid", "location": "x", "description": ""},
+        {"name": "valid", "location": "", "description": "x"},
+    ],
+)
+def test_add_valid_encounter_location_description_length_accepted(client, payload):
+    response = client.post(reverse("core:add_encounter"), payload)
+    assert response.status_code == 200 # Successful
+    assert Encounter.objects.exists() # Encounter was added
+
+def test_delete_encounter(client, encounter):
+    response = client.delete(reverse("core:encounter", kwargs={"encounter_id": encounter.pk}))
+    assert response.status_code == 204 # Successful
+    assert not Encounter.objects.exists() # Encounter is deleted
+
+def test_delete_404_nonexistant_encounter(client):
+    response = client.delete(reverse("core:encounter", kwargs={"encounter_id": 999}))
+    assert response.status_code == 404 # Unsuccessful
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"name": "valid"},
+        {"name": "abc"},
+        {"name": "x"*120},
+    ],
+)
+def test_update_encounter_name_accepts_valid_names(client, encounter, payload):
+    current_name = encounter.name # Save current values
+    current_location = encounter.location
+    current_desc = encounter.description
+    assert encounter.name == current_name
+
+    response = client.patch(reverse("core:encounter", kwargs={"encounter_id": encounter.pk}), payload, 'application/json')
+    assert response.status_code == 200 # Successful
+
+    new_name = payload["name"]
+    encounter.refresh_from_db()
+    assert encounter.name == new_name
+    assert encounter.location == current_location
+    assert encounter.description == current_desc
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"name": ""},
+        {},
+        {"location": ""},
+        {"description": "           "},
+    ],
+)
+def test_update_fields_unchanged_if_empty_or_missing(client, encounter, payload):
+    original_name = encounter.name
+    original_location = encounter.location
+    original_desc = encounter.description
+
+    response = client.patch(reverse("core:encounter", kwargs={"encounter_id": encounter.pk}), payload, 'application/json')
+    assert response.status_code == 200 # Successful
+    assert encounter.name == original_name # Values not updated
+    assert encounter.location == original_location
+    assert encounter.description == original_desc
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"location": "hello"},
+        {"location": "x"*120}
+    ],
+)
+def test_update_encounter_location_accepts_valid_values(client, encounter, payload):
+    current_name = encounter.name # Save current values
+    current_desc = encounter.description
+
+    response = client.patch(reverse("core:encounter", kwargs={"encounter_id": encounter.pk}), payload, 'application/json')
+    assert response.status_code == 200 # Successful
+
+    new_location = payload["location"]
+    encounter.refresh_from_db()
+    assert encounter.name == current_name
+    assert encounter.location == new_location
+    assert encounter.description == current_desc
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"description": "hello"},
+        {"description": "x"*255}
+    ],
+)
+def test_update_encounter_description_accepts_valid_values(client, encounter, payload):
+    current_name = encounter.name # Save current values
+    current_location = encounter.location
+
+    response = client.patch(reverse("core:encounter", kwargs={"encounter_id": encounter.pk}), payload, 'application/json')
+    assert response.status_code == 200 # Successful
+
+    new_description = payload["description"]
+    encounter.refresh_from_db()
+    assert encounter.name == current_name
+    assert encounter.location == current_location
+    assert encounter.description == new_description
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"name": "x"*121, "description": "hello"},
+        {"description": "x"*256},
+        {"location": "x"*121, "name": "new_name"},
+        {"description": "x"*255, "location": "x"*121}
+    ],
+)
+def test_update_encounter_rejects_invalid_requests(client, encounter, payload):
+    current_name = encounter.name # Save current values
+    current_location = encounter.location
+    current_description = encounter.description
+
+    response = client.patch(reverse("core:encounter", kwargs={"encounter_id": encounter.pk}), payload, 'application/json')
+    assert response.status_code == 400 # Unsuccessful
+
+    encounter.refresh_from_db()
+    assert encounter.name == current_name
+    assert encounter.location == current_location
+    assert encounter.description == current_description
