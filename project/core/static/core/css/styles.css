@@ -158,7 +158,7 @@ h5,
 .hp-fill {
   height: 100%;
   background: var(--moss);
-  transition: width 0.3s;
+  transition: width 0.3s, background-color 0.3s;
 }
 
 .init-badge {
@@ -213,6 +213,26 @@ h5,
   background: var(--ink);
 }
 
+#defendTargetList .list-group-item {
+  background: var(--slate);
+  border-color: #3a3944;
+  color: var(--bone);
+}
+
+.defend-target-name {
+  min-width: 8rem;
+}
+
+.defend-target-traits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+}
+
+.defend-target-traits .form-check {
+  margin: 0;
+  white-space: nowrap;
+}
 .dashboard {
   flex: 1;
   min-height: 0;

@@ -101,6 +101,12 @@ def test_home_add_combatant_form_includes_saving_throw_bonuses(client, encounter
     ):
         assert f'name="{field}"'.encode() in response.content
 
+def test_home_defend_target_picker_lists_encounter_combatants(client, encounter, combatant):
+    response = client.get(reverse("core:encounter", kwargs={"encounter_id": encounter.pk}))
+
+    assert response.status_code == 200
+    assert b'<option value="">Choose a target...</option>' in response.content
+    assert f'<option value="{combatant.pk}">Goblin</option>'.encode() in response.content
 
 def test_saving_throw_controls_and_combatant_bonus_data_are_rendered(client, combatant):
     combatant.character.dexterity_save_bonus = -2
