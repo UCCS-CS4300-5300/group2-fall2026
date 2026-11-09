@@ -1,0 +1,11 @@
+core/models.py - A (72.12)
+core/conftest.py - A (100.00)
+core/views.py - A (22.04)
+core/urls.py - A (100.00)
+core/forms.py - A (66.70)
+core/admin.py - A (100.00)
+core/npc_views.py - A (56.45)
+core/__init__.py - A (100.00)
+core/npc_urls.py - A (100.00)
+
+Exit status: 0

@@ -1,0 +1,53 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.2, pytest-8.4.2, pluggy-1.7.0
+django: version: 5.2.19, settings: config.quality_test_settings (from env)
+rootdir: /workspaces/group2-fall2026/project
+configfile: pytest.ini
+plugins: platformdirs-4.14.0, anyio-4.15.1, cov-6.2.1, django-4.14.0
+collected 137 items
+
+core/test_ai.py ..                                                       [  1%]
+core/test_character_encounter.py .............                           [ 10%]
+core/test_dice.py ..                                                     [ 12%]
+core/test_encounters.py ................................................ [ 47%]
+.                                                                        [ 48%]
+core/test_enemy_presets.py ............                                  [ 56%]
+core/test_npcs.py ............                                           [ 65%]
+core/test_quests.py ....................                                 [ 80%]
+core/tests.py .                                                          [ 81%]
+core/test_ai.py ................                                         [ 92%]
+core/test_enemy_presets.py ..........                                    [100%]
+
+=============================== warnings summary ===============================
+core/test_ai.py: 17 warnings
+core/test_character_encounter.py: 13 warnings
+core/test_dice.py: 2 warnings
+core/test_encounters.py: 47 warnings
+core/test_enemy_presets.py: 22 warnings
+core/test_npcs.py: 12 warnings
+core/test_quests.py: 20 warnings
+  /usr/local/python/3.14.2/lib/python3.14/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /workspaces/group2-fall2026/project/staticfiles/
+    mw_instance = middleware(adapted_handler)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: /workspaces/group2-fall2026/project/quality-evidence/tests.xml -
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.14.2-final-0 ________________
+
+Name                Stmts   Miss Branch BrPart  Cover   Missing
+---------------------------------------------------------------
+core/__init__.py        0      0      0      0   100%
+core/admin.py           3      0      0      0   100%
+core/conftest.py       10      0      0      0   100%
+core/forms.py          45      0     14      1    98%   74->89
+core/models.py         51      2      4      1    95%   51->exit, 56, 104
+core/npc_urls.py        4      0      0      0   100%
+core/npc_views.py      28      0      8      0   100%
+core/urls.py            4      0      0      0   100%
+core/views.py         408     94    104     11    74%   83-84, 91-110, 154-155, 174, 192->exit, 199, 203-204, 264-265, 298, 328, 397, 435->432, 438->432, 497-609, 656-662, 707, 716-717, 721-722, 724, 821->822, 849->850
+---------------------------------------------------------------
+TOTAL                 553     96    130     13    80%
+Coverage JSON written to file quality-evidence/coverage.json
+====================== 137 passed, 133 warnings in 1.26s =======================
+
+Exit status: 0
