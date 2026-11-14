@@ -1,6 +1,7 @@
 import { setupDraggableCharacterCard, savePositionOnMove } from "./drag.js";
 import { setupDiceRoller } from "./dice.js";
 import { setupQuests } from "./quests.js";
+import { setupPanelResize } from "./panel_resize.js";
 import { setupPreset } from "./enemy_presets.js";
 import { setupSelectableCharacterCard } from "./character_select.js";
 import { setupEditableHp } from "./editable_hp.js";
@@ -13,6 +14,7 @@ setupSelectableCharacterCard() // Make character cards selectable
 savePositionOnMove() //Make sure dragged cards position get saved
 setupDiceRoller()
 setupQuests()
+setupPanelResize()
 setupPreset() 
 setupEditableHp() // Make character current HP editable
 setupInitiativeRoller()
