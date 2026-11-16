@@ -6,8 +6,9 @@ from unittest.mock import patch
 import pytest
 from django.urls import reverse
 
-from core.views import _retrieve_rules_pdf_context
+from .ai import _retrieve_rules_pdf_context
 
+RETRIEVE_RULES_PDF_CONTEXT_FUNC = "core.ai._retrieve_rules_pdf_context"
 
 @pytest.mark.parametrize("chat_type, expected_prompt", [
     ("dm", "game master assistant"),
@@ -21,7 +22,7 @@ def test_chat_sends_selected_model_prompt_and_history_to_ollama(
     monkeypatch.setenv("RULES_PDF_PATH", "rules-reference.pdf")
     if chat_type == "rules":
         with patch(
-            "core.views._retrieve_rules_pdf_context",
+            RETRIEVE_RULES_PDF_CONTEXT_FUNC,
             return_value=["[PDF page 12]\nA creature can take the Dash action."],
         ):
             return _assert_chat_sends_model_prompt_history_and_pdf(
@@ -112,7 +113,7 @@ def test_chat_reports_when_ollama_is_not_running(client):
 
 def test_rules_chat_requires_a_configured_pdf(client, monkeypatch):
     monkeypatch.delenv("RULES_PDF_PATH", raising=False)
-    monkeypatch.setattr("core.views.DEFAULT_RULES_PDF", Path("missing-default-rules.pdf"))
+    monkeypatch.setattr("core.ai.DEFAULT_RULES_PDF", Path("missing-default-rules.pdf"))
 
     response = client.post(reverse("core:chat"), {
         "chat_type": "rules",
@@ -139,7 +140,7 @@ def test_rules_chat_reports_a_missing_pdf(client, monkeypatch):
 
 def test_rules_chat_returns_no_supported_ruling_without_calling_model(client, monkeypatch):
     monkeypatch.setenv("RULES_PDF_PATH", "rules-reference.pdf")
-    with patch("core.views._retrieve_rules_pdf_context", return_value=[]):
+    with patch(RETRIEVE_RULES_PDF_CONTEXT_FUNC, return_value=[]):
         with patch("core.views.urlopen") as urlopen:
             response = client.post(reverse("core:chat"), {
                 "chat_type": "rules",
@@ -159,7 +160,7 @@ def test_rules_pdf_retrieval_selects_relevant_page_text(tmp_path):
         (1, "The adventuring party travels through a forest."),
         (12, "A creature can take the Dash action to gain extra movement."),
     )
-    with patch("core.views._load_rules_pdf_pages", return_value=pages):
+    with patch(RETRIEVE_RULES_PDF_CONTEXT_FUNC, return_value=pages):
         context = _retrieve_rules_pdf_context("Can I take the Dash action?", str(pdf_path))
 
     assert context == [

@@ -13,7 +13,7 @@ from django.views.decorators.http import require_GET, require_http_methods, requ
 
 from .forms import CharacterForm, EncounterForm, QuestForm
 from .models import Character, CharacterEncounter, Encounter, Quest
-from .ai import parse_chat_request
+from .ai import parse_chat_request, ChatError
 
 @require_http_methods(["GET", "DELETE", "PATCH"])
 def encounter_detail(request, encounter_id):
@@ -329,13 +329,22 @@ def chat(request):
     # Get chat_type, message, and history
     chat_type = request.POST.get("chat_type", "")
     message = request.POST.get("message", "").strip()
+
+    # Try to get history
     try:
         history = json.loads(request.POST.get("history", "[]"))
     except json.JSONDecodeError:
         return JsonResponse({"error": "Chat history must be valid JSON."}, status=400)
 
-    # Temporarily just to clean up views
-    return parse_chat_request(request, chat_type, message, history)
+    # Try to get reply
+    try:
+        reply = parse_chat_request(chat_type, message, history)
+    except ChatError as e:
+        # Error. Return the error message and status code
+        return JsonResponse({"error": str(e)}, status=e.status)
+
+    # No error, return reply
+    return JsonResponse({"reply": reply})
 
 # View to add combatant to encounter.
 @require_POST
