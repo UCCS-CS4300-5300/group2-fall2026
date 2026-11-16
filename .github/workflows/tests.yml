@@ -88,7 +88,6 @@ jobs:
       id-token: write
     env:
       GATEWAY_URL: ${{ vars.COURSE_GATEWAY_URL }}
-      HUMAN_ISSUE: ${{ vars.QUALITY_REVIEW_ISSUE_URL }}
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
         with:
