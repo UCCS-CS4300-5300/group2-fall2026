@@ -41,6 +41,7 @@ from .models import Quest
 from .models import Character
 
 from .forms import CharacterForm
+from .turns import turn_state
 
 
 CHAT_SYSTEM_PROMPTS = {
@@ -225,6 +226,7 @@ def get_encounter(request, encounter_id):
             "quests": quests,
             "items": character_encounters,
             "encounter": encounter,
+            "turn": turn_state(encounter),
         }
     )
 
