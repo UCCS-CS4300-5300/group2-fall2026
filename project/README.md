@@ -18,6 +18,13 @@ For Sprint 1, use a fresh checkout and database. Earlier migration files were
 changed, so upgrading an older local database is not supported yet. Keep any
 older database as a backup; do not delete it to get the app running.
 
+## Panel sizes
+
+Drag the divider between the encounter and tools to give either panel more room.
+You can also focus the divider and use the Left and Right arrow keys. Both panels
+stop at a minimum width so the controls stay usable; text size does not change.
+Narrow windows keep the stacked layout. Reloading resets the panel sizes.
+
 ## Quests and notes
 
 Use the Quests tab to add a quest or note, check it off, reopen it, or delete it.
