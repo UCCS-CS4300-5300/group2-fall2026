@@ -1,10 +1,8 @@
 import json
 import math
-import os
-from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
-from urllib.request import Request, urlopen
+from urllib.request import urlopen
 
 from django.db import transaction
 from django.db.models import Count, ProtectedError, Q
@@ -12,7 +10,6 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
-from pypdf.errors import PdfReadError
 
 from .forms import CharacterForm, EncounterForm, QuestForm
 from .models import Character, CharacterEncounter, Encounter, Quest
@@ -329,8 +326,16 @@ def import_enemy(request, encounter_id):
 
 @require_POST
 def chat(request):
+    # Get chat_type, message, and history
+    chat_type = request.POST.get("chat_type", "")
+    message = request.POST.get("message", "").strip()
+    try:
+        history = json.loads(request.POST.get("history", "[]"))
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Chat history must be valid JSON."}, status=400)
+
     # Temporarily just to clean up views
-    return parse_chat_request(request)
+    return parse_chat_request(request, chat_type, message, history)
 
 # View to add combatant to encounter.
 @require_POST

@@ -1,7 +1,14 @@
-from os import Path
-from functools import lru_cache
-from pypdf import PdfReader
+import os
+import json
 import re
+from pathlib import Path
+from urllib.request import Request, urlopen
+from pypdf import PdfReader
+from pypdf.errors import PdfReadError
+from django.http import JsonResponse
+from urllib.error import HTTPError, URLError
+from functools import lru_cache
+
 
 CHAT_SYSTEM_PROMPTS = {
     "dm": (
@@ -38,9 +45,7 @@ RULES_PDF_STOP_WORDS = {
 DEFAULT_RULES_PDF = Path(__file__).resolve().parent.parent / "local_data" / "DnD5e_SRD.pdf"
 
 # Temporary just to move this out of views
-def parse_chat_request(request):
-    chat_type = request.POST.get("chat_type", "")
-    message = request.POST.get("message", "").strip()
+def parse_chat_request(chat_type, message, history):
     if chat_type not in CHAT_SYSTEM_PROMPTS:
         return JsonResponse({"error": "Unknown chat type."}, status=400)
     if not message:
@@ -50,11 +55,7 @@ def parse_chat_request(request):
             {"error": f"Message must be at most {MAX_CHAT_MESSAGE_LENGTH} characters."},
             status=400,
         )
-
-    try:
-        history = json.loads(request.POST.get("history", "[]"))
-    except json.JSONDecodeError:
-        return JsonResponse({"error": "Chat history must be valid JSON."}, status=400)
+    
     if not isinstance(history, list) or len(history) > MAX_CHAT_HISTORY_MESSAGES:
         return JsonResponse(
             {"error": f"Chat history can contain at most {MAX_CHAT_HISTORY_MESSAGES} messages."},
@@ -154,7 +155,7 @@ def parse_chat_request(request):
     return JsonResponse({"reply": reply})
 
 @lru_cache(maxsize=4)
-def _load_rules_pdf_pages(pdf_path, modified_time):
+def _load_rules_pdf_pages(pdf_path):
     reader = PdfReader(pdf_path)
     return tuple(
         (page_number, page.extract_text() or "")
