@@ -80,7 +80,7 @@ jobs:
           
   report:
     # Automatic after successful evidence on main; PRs never call live AI.
-    if: success() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # if: success() && github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: evidence
     runs-on: ubuntu-24.04
     permissions:
