@@ -14,6 +14,7 @@ from django.views.decorators.http import require_GET, require_http_methods, requ
 from .forms import CharacterForm, EncounterForm, QuestForm
 from .models import Character, CharacterEncounter, Encounter, Quest
 from .ai import parse_chat_request, ChatError
+from .turns import turn_state
 
 @require_http_methods(["GET", "DELETE", "PATCH"])
 def encounter_detail(request, encounter_id):
