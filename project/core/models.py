@@ -60,6 +60,8 @@ class Encounter(models.Model):
     name = models.CharField(max_length=120)
     location = models.CharField(max_length=120, blank=True)
     description = models.CharField(max_length=255, blank=True)
+    turn_index = models.PositiveIntegerField(default=0)
+    turn_version = models.PositiveIntegerField(default=0)
 
     # Each Encoutner can have multiple Characters, and each Character can be in multiple encounters.
     characters = models.ManyToManyField(

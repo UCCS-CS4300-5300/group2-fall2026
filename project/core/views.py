@@ -57,6 +57,7 @@ def get_encounter(request, encounter_id):
             "quests": quests,
             "items": character_encounters,
             "encounter": encounter,
+            "turn": turn_state(encounter),
         }
     )
 

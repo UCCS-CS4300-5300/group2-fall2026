@@ -58,11 +58,46 @@ h5,
 }
 
 .side {
-  width: 340px;
+  width: var(--tools-width, 340px);
+  flex-shrink: 0;
   background: var(--slate);
   border-left: 1px solid #3a3944;
   display: flex;
   flex-direction: column;
+}
+
+.panel-divider {
+  flex: 0 0 10px;
+  display: grid;
+  place-items: center;
+  cursor: col-resize;
+  touch-action: none;
+  background: var(--slate);
+  border-inline: 1px solid #3a3944;
+}
+
+.panel-divider::after {
+  content: "";
+  width: 2px;
+  height: 30px;
+  border-radius: 2px;
+  background: var(--bone);
+}
+
+.panel-divider:hover,
+.panel-divider:focus-visible,
+.main.resizing .panel-divider {
+  background: var(--brass);
+}
+
+.panel-divider:focus-visible {
+  outline: 2px solid var(--bone);
+  outline-offset: -2px;
+}
+
+.main.resizing {
+  cursor: col-resize;
+  user-select: none;
 }
 
 .side-body {
@@ -97,6 +132,9 @@ h5,
   .main {
     flex-direction: column;
   }
+  .panel-divider {
+    display: none;
+  }
   .side {
     width: 100%;
     height: 40%;
@@ -128,6 +166,18 @@ h5,
 .combatant.selected {
   border-color: var(--brass);
   box-shadow: 0 0 0 3px rgba(201, 162, 74, 0.35);
+}
+
+.combatant[aria-current="true"] {
+  outline: 2px solid #8ed1bd;
+  outline-offset: 3px;
+}
+
+.combatant[aria-current="true"]::before {
+  content: "Current turn";
+  color: #8ed1bd;
+  font-size: 0.75rem;
+  font-weight: bold;
 }
 
 .combatant.targetable {

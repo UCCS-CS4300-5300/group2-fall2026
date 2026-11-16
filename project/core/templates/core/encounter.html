@@ -18,7 +18,7 @@
     </head>
 
     <body>
-        <div class="topbar d-flex align-items-center px-3 py-2 gap-3">
+        <div class="topbar d-flex flex-wrap align-items-center px-3 py-2 gap-3">
             <h1 class="h4 m-0">Encounter Helper</h1>
             <input
                 id="encounterName"
@@ -26,10 +26,9 @@
                 value="{{ encounter.name }}"
                 aria-label="Encounter name"
             />
-            <span id="turnInfo" class="ms-auto small text-secondary"
-                >Roll initiative to begin</span
-            >
+            <span id="turnInfo" class="ms-auto small text-break" role="status">Roll initiative to begin</span>
         </div>
+        {{ turn|json_script:"initialTurn" }}
 
         <div class="main">
             <div class="left">
@@ -60,7 +59,7 @@
                     >
                         Add combatant
                     </button>
-                    <button class="btn btn-outline-light" id="initBtn">
+                    <button class="btn btn-outline-light" id="initBtn" data-url="{% url 'core:roll_initiative' encounter.id %}">
                         Roll initiative
                     </button>
                     <button
@@ -79,10 +78,10 @@
                     >
                         Defend
                     </button>
-                    <button class="btn btn-outline-light" id="nextBtn" disabled>
+                    <button class="btn btn-outline-light" id="nextBtn" data-url="{% url 'core:next_turn' encounter.id %}" disabled>
                         Next turn
                     </button>
-                    <span id="hint" class="small text-secondary ms-2"></span>
+                    <span id="hint" class="small text-warning ms-2" role="status"></span>
                     <button
                         class="btn btn-sm btn-outline-secondary ms-auto"
                         id="resetBtn"
@@ -92,7 +91,17 @@
                 </div>
             </div>
 
-            <aside class="side">
+            <div
+                id="panelDivider"
+                class="panel-divider"
+                role="separator"
+                tabindex="0"
+                aria-label="Resize tools panel"
+                aria-orientation="vertical"
+                aria-controls="toolsPanel"
+                title="Drag to resize panels, or use the Left and Right arrow keys."
+            ></div>
+            <aside class="side" id="toolsPanel">
                 <ul class="nav nav-tabs px-2 pt-2" role="tablist">
                     <li class="nav-item">
                         <button
