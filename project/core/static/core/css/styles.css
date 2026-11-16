@@ -168,6 +168,18 @@ h5,
   box-shadow: 0 0 0 3px rgba(201, 162, 74, 0.35);
 }
 
+.combatant[aria-current="true"] {
+  outline: 2px solid #8ed1bd;
+  outline-offset: 3px;
+}
+
+.combatant[aria-current="true"]::before {
+  content: "Current turn";
+  color: #8ed1bd;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
 .combatant.targetable {
   border-color: var(--blood);
   cursor: crosshair;

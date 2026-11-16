@@ -56,6 +56,14 @@ Other frontend features can import `rollDice(sides, count)` from `dice.js`.
 It takes numbers and returns `{ sides, count, rolls, total }`. It does not update
 the page or save character data. The old `/dice/roll/` endpoint is removed.
 
+## Encounter turns
+
+Roll initiative to start round 1. The highest roll goes first, with ties going
+in the order the combatants were added. Next turn moves the highlight to the
+next card and starts a new round after the last one. Reopening the encounter
+picks up where you left off. Roll again to include a new combatant and restart
+at round 1.
+
 ## AI chats
 
 Install and start [Ollama](https://ollama.com/), then download the models used
@@ -132,11 +140,8 @@ and pushes to main. The workflow is in `.github/workflows/tests.yml`.
 
 ## Current limits
 
-The dashboard still uses one placeholder encounter. The player/enemy selector
-does not change the saved character type yet. Initiative, attacks, next turn,
-clear encounter, and AI chat are not implemented. Character cards and
-their positions are saved in the local SQLite database. Bootstrap loads from a
-CDN, so the styling and modal need an internet connection.
+Attack and Clear encounter are still placeholders. Bootstrap loads from a CDN,
+so the styling and modals need an internet connection.
 
 ## Development notes
 

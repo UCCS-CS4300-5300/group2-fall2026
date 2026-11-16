@@ -1,83 +1,86 @@
 import { rollDice } from "./dice.js";
 
-//Add listener for "Roll initiative" button
 export function setupInitiativeRoller() {
-    const initBtn = document.getElementById("initBtn");
-    initBtn.addEventListener('click', () => {
-        const charCards = document.querySelectorAll(".combatant");
-        // Do this for each character card
-        for (const card of charCards) {
-            const badge = card.querySelector(".init-badge");
-            if (!badge) continue;
-            
-            const initiative = rollDice(20, 1).total;
-            const originalVisibility = badge.style.visibility;
-            const originalInitiative = badge.textContent;
+    const board = document.getElementById("board");
+    const rollButton = document.getElementById("initBtn");
+    const nextButton = document.getElementById("nextBtn");
+    const status = document.getElementById("turnInfo");
+    const hint = document.getElementById("hint");
+    let turn = JSON.parse(document.getElementById("initialTurn").textContent);
 
-            badge.style.visibility="visible";
-            badge.textContent=initiative;
-
-            // If we have an error log it and revert initiative badge to original state
-            const onError = (errStr, status) => {
-                console.error(`Returned ${status}\n${errStr}`);
-                badge.style.visibility=originalVisibility;
-                badge.textContent=originalInitiative;
+    function showTurn() {
+        let activeCard;
+        for (const card of board.querySelectorAll(".combatant")) {
+            const id = card.dataset.id;
+            const score = turn.rolls[id];
+            if (score !== undefined) {
+                const badge = card.querySelector(".init-badge");
+                card.dataset.initValue = score;
+                badge.textContent = score;
+                badge.style.visibility = score === 0 ? "hidden" : "visible";
             }
 
-            // If the return value isn't the same as the sent value, use the actual value for consistency with backend
-            const onMismatchedReturnValue = (actualInitiative) => {
-                console.log(actualInitiative)
-                badge.textContent = actualInitiative;
+            if (Number(id) === turn.active_id) {
+                activeCard = card;
+                card.setAttribute("aria-current", "true");
+            } else {
+                card.removeAttribute("aria-current");
             }
-
-            // Send request to update initiative
-            // Right now this sends a new request for each character, but if this is a problem we can maybe batch this?
-            patchInitiativeReq(card, initiative, onError, onMismatchedReturnValue);
         }
-    })
-}
 
-// Sends PATCH request to backend to update the character's initiative
-// onError should take (error->str, status code->int)
-// onMismatchedReturnValue should take the actual returned value
-async function patchInitiativeReq(combatant, newInitiative, onError, onMismatchedReturnValue) {
-    const token = document.querySelector("[name=csrfmiddlewaretoken]").value;
-
-    let res;
-    try {
-        res = await fetch(combatant.dataset.updateInitiativeUrl, {
-            method: "PATCH",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": token,
-            },
-            body: JSON.stringify({ initiative: newInitiative }),
-        });
-    } catch (err) {
-        // Only genuine network failures end up here
-        onError("Could not reach server: " + String(err), null);
-        return;
+        nextButton.disabled = !activeCard;
+        if (activeCard) {
+            const name = activeCard.querySelector(".name").textContent;
+            status.textContent = `Round ${turn.round} · ${name}’s turn`;
+        } else if (turn.active_id !== null) {
+            status.textContent = "Reload to see the current combatant.";
+        } else {
+            status.textContent = "Roll initiative to begin";
+        }
     }
 
-    if (!res.ok) {
-        let errStr = "Unknown error.";
+    async function saveTurn(url, body) {
+        rollButton.disabled = true;
+        nextButton.disabled = true;
+        hint.textContent = "";
         try {
-            const data = await res.json();
-            errStr = data.error ?? errStr;
-        } catch {}
-        onError("Unable to update initiative: " + errStr, res.status);
-        return;
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+                },
+                body: JSON.stringify(body),
+            });
+            const result = await response.json();
+            if (!response.ok) {
+                hint.textContent = result.error || "Couldn’t save the turn. Try again.";
+                return;
+            }
+            turn = result;
+        } catch {
+            hint.textContent = "Couldn’t confirm the turn. Try again.";
+        } finally {
+            rollButton.disabled = false;
+            showTurn();
+        }
     }
 
-    let data;
-    try {
-        data = await res.json();
-    } catch {
-        onError("Server returned an invalid response.", res.status);
-        return;
-    }
+    rollButton.addEventListener("click", () => {
+        const cards = board.querySelectorAll(".combatant");
+        if (!cards.length) {
+            hint.textContent = "Add a combatant before rolling initiative.";
+            return;
+        }
 
-    if (data.initiative !== Number(newInitiative)) {
-        onMismatchedReturnValue(data.initiative);
-    }
+        const rolls = {};
+        for (const card of cards) rolls[card.dataset.id] = rollDice(20, 1).total;
+        saveTurn(rollButton.dataset.url, { rolls });
+    });
+
+    nextButton.addEventListener("click", () => {
+        saveTurn(nextButton.dataset.url, { turn_version: turn.turn_version });
+    });
+
+    showTurn();
 }
