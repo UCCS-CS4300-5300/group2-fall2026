@@ -55,15 +55,6 @@ def with_retry(fn, *args, tries=6):
             time.sleep(wait)
 
 if __name__ == "__main__":
-    chunks = json.load(open("chunks.json", encoding="utf-8"))
-    arr = np.load("embeddings_partial.npy")
-    n = arr.shape[0]
-
-    print(arr.shape)            # should be (n, 768)
-    print(chunks[0]["heading"])
-    print(chunks[n - 1]["heading"])
-    exit(0)
-
     if not GEMINI_API_KEY:
         print("Unable to embed chunks. Gemini API key not provided.")
         exit(1)
