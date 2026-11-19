@@ -79,12 +79,15 @@ def test_add_combatant_saves_and_displays_saving_throw_bonuses(client, encounter
         entry.character.wisdom_save_bonus,
         entry.character.charisma_save_bonus,
     ) == (2, -1, 0, 3, 1, 4)
-    assert b"STR <strong>2</strong>" in response.content
-    assert b"DEX <strong>-1</strong>" in response.content
+    assert b'data-character-field="strength_save_bonus"' in response.content
+    assert b'<strong class="editable-character-value">2</strong>' in response.content
+    assert b'data-character-field="dexterity_save_bonus"' in response.content
+    assert b'<strong class="editable-character-value">-1</strong>' in response.content
 
     encounter_page = client.get(reverse("core:encounter", kwargs={"encounter_id": encounter.pk}))
     assert encounter_page.status_code == 200
-    assert b"CHA <strong>4</strong>" in encounter_page.content
+    assert b'data-character-field="charisma_save_bonus"' in encounter_page.content
+    assert b'<strong class="editable-character-value">4</strong>' in encounter_page.content
 
 
 def test_home_add_combatant_form_includes_saving_throw_bonuses(client, encounter):

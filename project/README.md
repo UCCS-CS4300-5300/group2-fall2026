@@ -64,6 +64,14 @@ next card and starts a new round after the last one. Reopening the encounter
 picks up where you left off. Roll again to include a new combatant and restart
 at round 1.
 
+## Editing combatants
+
+Click a combatant's name or any saving-throw bonus to edit it. Press Enter or
+click elsewhere to save; press Escape to cancel. Names and saving-throw bonuses
+belong to the character, so changes are saved in the database and appear in
+other encounters that use that same character. Current HP remains specific to
+each encounter.
+
 ## AI chats
 
 Install and start [Ollama](https://ollama.com/), then download the models used

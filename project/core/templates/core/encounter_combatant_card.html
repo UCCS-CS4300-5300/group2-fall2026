@@ -21,6 +21,7 @@
     data-move-url="{% url 'core:move_combatant' entry.id %}"
     data-update-hp-url="{% url 'core:update_hp' entry.id %}"
     data-update-initiative-url="{% url 'core:update_initiative' entry.id %}"
+    data-update-character-url="{% url 'core:update_character_details' entry.id %}"
 >
     <!-- Show initiative if it is non-zero -->
     {% if entry.initiative == 0 %}
@@ -30,7 +31,9 @@
     {% endif %}
 
     <div class="d-flex justify-content-between align-items-baseline">
-        <h5 class="name h6 m-0">{{char.name}}</h5>
+        <h5 class="h6 m-0">
+            <button type="button" class="name editable-character-field" data-character-field="name" title="Click to edit name" aria-label="Edit combatant name: {{char.name}}">{{char.name}}</button>
+        </h5>
         <span class="small text-secondary text-uppercase"
             >{{char.char_type|default:"enemy"}}</span
         >
@@ -43,12 +46,13 @@
         <span>AC <strong>{{char.armor_class}}</strong></span>
     </div>
     <div class="row row-cols-3 g-0 mt-2 small text-secondary" aria-label="Saving throw bonuses">
-        <span class="col">STR <strong>{{char.strength_save_bonus}}</strong></span>
-        <span class="col">DEX <strong>{{char.dexterity_save_bonus}}</strong></span>
-        <span class="col">CON <strong>{{char.constitution_save_bonus}}</strong></span>
-        <span class="col">INT <strong>{{char.intelligence_save_bonus}}</strong></span>
-        <span class="col">WIS <strong>{{char.wisdom_save_bonus}}</strong></span>
-        <span class="col">CHA <strong>{{char.charisma_save_bonus}}</strong></span>
+        <span class="col">STR <button type="button" class="editable-character-field" data-character-field="strength_save_bonus" title="Click to edit Strength saving throw bonus" aria-label="Edit Strength saving throw bonus"><strong class="editable-character-value">{{char.strength_save_bonus}}</strong></button></span>
+        <span class="col">DEX <button type="button" class="editable-character-field" data-character-field="dexterity_save_bonus" title="Click to edit Dexterity saving throw bonus" aria-label="Edit Dexterity saving throw bonus"><strong class="editable-character-value">{{char.dexterity_save_bonus}}</strong></button></span>
+        <span class="col">CON <button type="button" class="editable-character-field" data-character-field="constitution_save_bonus" title="Click to edit Constitution saving throw bonus" aria-label="Edit Constitution saving throw bonus"><strong class="editable-character-value">{{char.constitution_save_bonus}}</strong></button></span>
+        <span class="col">INT <button type="button" class="editable-character-field" data-character-field="intelligence_save_bonus" title="Click to edit Intelligence saving throw bonus" aria-label="Edit Intelligence saving throw bonus"><strong class="editable-character-value">{{char.intelligence_save_bonus}}</strong></button></span>
+        <span class="col">WIS <button type="button" class="editable-character-field" data-character-field="wisdom_save_bonus" title="Click to edit Wisdom saving throw bonus" aria-label="Edit Wisdom saving throw bonus"><strong class="editable-character-value">{{char.wisdom_save_bonus}}</strong></button></span>
+        <span class="col">CHA <button type="button" class="editable-character-field" data-character-field="charisma_save_bonus" title="Click to edit Charisma saving throw bonus" aria-label="Edit Charisma saving throw bonus"><strong class="editable-character-value">{{char.charisma_save_bonus}}</strong></button></span>
     </div>
+    <p class="character-edit-status small text-danger mb-0" role="status" aria-live="polite" hidden></p>
 </div>
 {% endwith %}
