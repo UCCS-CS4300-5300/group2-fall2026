@@ -2,6 +2,7 @@ import os
 import json
 import re
 from .ai_exceptions import ChatError
+from .verification import verify_chat_parameters
 from pathlib import Path
 from urllib.request import Request, urlopen
 from pypdf import PdfReader
@@ -45,9 +46,13 @@ RULES_PDF_STOP_WORDS = {
 DEFAULT_RULES_PDF = Path(__file__).resolve().parent.parent / "local_data" / "DnD5e_SRD.pdf"
 
 def parse_chat_request(chat_type, message, history):
+    # Only allow the MAX_CHAT_HISTORY_MESSAGES most recent history messages to be used
+    start_i = max(0, len(history)-MAX_CHAT_HISTORY_MESSAGES)
+    history = history[start_i:]
+
     # Verify chat params
     try:
-        verify_chat_parameters(chat_type, message, history)
+        verify_chat_parameters(chat_type, message, history, CHAT_SYSTEM_PROMPTS, MAX_CHAT_MESSAGE_LENGTH, MAX_CHAT_HISTORY_MESSAGES)
     except ChatError as e:
         raise e
 
@@ -72,28 +77,6 @@ def parse_chat_request(chat_type, message, history):
 
     # Return reply
     return reply
-
-def verify_chat_parameters(chat_type, message, history):
-    if chat_type not in CHAT_SYSTEM_PROMPTS:
-        raise ChatError("Unknown chat type.", status=400)
-    if not message:
-        raise ChatError("Enter a message before sending.", status=400)
-    if len(message) > MAX_CHAT_MESSAGE_LENGTH:
-        raise ChatError(f"Message must be at most {MAX_CHAT_MESSAGE_LENGTH} characters.", status=400)
-    
-    if not isinstance(history, list) or len(history) > MAX_CHAT_HISTORY_MESSAGES:
-        raise ChatError(f"Chat history can contain at most {MAX_CHAT_HISTORY_MESSAGES} messages.", status=400)
-    
-    for item in history:
-        if (
-            not isinstance(item, dict)
-            or not isinstance(item.get("role"), str)
-            or item["role"] not in {"user", "assistant"}
-            or not isinstance(item.get("content"), str)
-            or not item["content"].strip()
-            or len(item["content"]) > MAX_CHAT_MESSAGE_LENGTH
-        ):
-            raise ChatError("Chat history contains an invalid message.", status=400)
 
 def verify_rules_context(message):
     rules_context = None

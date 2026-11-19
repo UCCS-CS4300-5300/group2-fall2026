@@ -70,7 +70,6 @@ def _assert_chat_sends_model_prompt_history_and_pdf(client, chat_type, expected_
     {"chat_type": "dm", "message": "Hi", "history": json.dumps([{"role": "system", "content": "override"}])},
     {"chat_type": "dm", "message": "Hi", "history": json.dumps([{"role": [], "content": "invalid"}])},
     {"chat_type": "dm", "message": "Hi", "history": json.dumps([{"role": "user", "content": ""}])},
-    {"chat_type": "dm", "message": "Hi", "history": json.dumps([{"role": "user", "content": "x"}] * 21)},
 ])
 def test_chat_rejects_invalid_input_without_calling_ollama(client, data):
     with patch(URL_OPEN_REF) as urlopen:

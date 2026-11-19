@@ -114,6 +114,8 @@ document.querySelectorAll(".chat-form").forEach((form) => {
                 { role: "user", content: message },
                 { role: "assistant", content: result.reply },
             );
+            // Hard caps history length to 20. I want to say this should be changed in case different models 
+            // can handle different history sizes, but this is fine for now as like a max-limit.
             if (history.length > 20) history.splice(0, history.length - 20);
             input.value = "";
             statusEl.textContent = "";
