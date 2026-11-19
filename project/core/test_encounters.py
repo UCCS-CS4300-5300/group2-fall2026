@@ -251,6 +251,15 @@ def test_empty_encounter_does_not_create_an_encounter(client):
     assert response.status_code == 404 # No encounter exists, this should 404
     assert not Encounter.objects.exists()
 
+
+def test_encounter_header_links_back_to_dashboard(client, encounter):
+    response = client.get(reverse("core:encounter", kwargs={"encounter_id": encounter.pk}))
+
+    assert response.status_code == 200
+    assert f'href="{reverse("core:dashboard")}"'.encode() in response.content
+    assert b"Back to encounters" in response.content
+
+
 @pytest.mark.parametrize(
     "payload",
     [
