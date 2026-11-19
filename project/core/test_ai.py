@@ -6,11 +6,11 @@ from unittest.mock import patch
 import pytest
 from django.urls import reverse
 
-from .ai import _retrieve_rules_pdf_context
+from .ai.ollama_backend import _retrieve_rules_pdf_context
 
-RETRIEVE_RULES_PDF_CONTEXT_FUNC = "core.ai._retrieve_rules_pdf_context"
-LOAD_RULES_PDF_PAGES_FUNC = "core.ai._load_rules_pdf_pages"
-URL_OPEN_REF = "core.ai.urlopen"
+RETRIEVE_RULES_PDF_CONTEXT_FUNC = "core.ai.ollama_backend._retrieve_rules_pdf_context"
+LOAD_RULES_PDF_PAGES_FUNC = "core.ai.ollama_backend._load_rules_pdf_pages"
+URL_OPEN_REF = "core.ai.ollama_backend.urlopen"
 
 @pytest.mark.parametrize("chat_type, expected_prompt", [
     ("dm", "game master assistant"),
@@ -117,7 +117,7 @@ def test_chat_reports_when_ollama_is_not_running(client):
 
 def test_rules_chat_requires_a_configured_pdf(client, monkeypatch):
     monkeypatch.delenv("RULES_PDF_PATH", raising=False)
-    monkeypatch.setattr("core.ai.DEFAULT_RULES_PDF", Path("missing-default-rules.pdf"))
+    monkeypatch.setattr("core.ai.ollama_backend.DEFAULT_RULES_PDF", Path("missing-default-rules.pdf"))
 
     response = client.post(reverse("core:chat"), {
         "chat_type": "rules",

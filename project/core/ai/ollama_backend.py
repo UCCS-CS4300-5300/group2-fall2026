@@ -1,6 +1,7 @@
 import os
 import json
 import re
+from .ai_exceptions import ChatError
 from pathlib import Path
 from urllib.request import Request, urlopen
 from pypdf import PdfReader
@@ -8,7 +9,6 @@ from pypdf.errors import PdfReadError
 from django.http import JsonResponse
 from urllib.error import HTTPError, URLError
 from functools import lru_cache
-
 
 CHAT_SYSTEM_PROMPTS = {
     "dm": (
@@ -43,13 +43,6 @@ RULES_PDF_STOP_WORDS = {
     "you", "your",
 }
 DEFAULT_RULES_PDF = Path(__file__).resolve().parent.parent / "local_data" / "DnD5e_SRD.pdf"
-
-# Exception for AI parsing to provide information to views
-class ChatError(Exception):
-    def __init__(self, message, status=400):
-        super().__init__(message)
-        self.message = message
-        self.status = status
 
 def parse_chat_request(chat_type, message, history):
     # Verify chat params
