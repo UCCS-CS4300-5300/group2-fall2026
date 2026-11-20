@@ -5,7 +5,7 @@ from urllib.error import URLError, HTTPError
 from io import BytesIO
 
 from django.urls import reverse
-from ..models import Character, CharacterEncounter
+from ..models import Character, CharacterEncounter, CharacterAttack
 
 def mock_api_response(data):
     """Create a fake API response containing JSON data. """
@@ -564,3 +564,227 @@ def test_import_returns_combatant_card(client, monkeypatch, encounter):
     assert response.status_code == 200
     assert b"Test Dragon" in response.content
     assert b"100" in response.content
+
+#---------------------------------------------------------------------------
+# Tests Attack and Damage on imported enemies
+#---------------------------------------------------------------------------
+
+# Test 1:
+@pytest.mark.django_db
+def test_import_monster_attacks(client, monkeypatch, encounter):
+    monster_data = {
+        "name": "Test Dragon",
+        "hit_points": 100,
+        "armor_class": [{"value": 18}],
+        "strength": 20,
+        "dexterity": 10,
+        "constitution": 18,
+        "intelligence": 12,
+        "wisdom": 12,
+        "charisma": 15,
+        "proficiencies": [],
+        "actions": [
+            {
+                "name": "Bite",
+                "desc": "The dragon makes a bite attack.",
+                "attack_bonus": 9,
+                "damage": [],
+            }
+        ],
+    }
+
+    mock_monster_api(monkeypatch, monster_data)
+
+    response = client.post(
+        reverse("core:import_enemy", kwargs={"encounter_id": encounter.pk}),
+        {"monster_index": "test-dragon"},
+    )
+
+    assert response.status_code == 200
+
+    character = Character.objects.get(name="Test Dragon")
+
+    attack = CharacterAttack.objects.get(
+        character=character,
+        name="Bite",
+    )
+
+    assert attack.description == "The dragon makes a bite attack."
+    assert attack.attack_bonus == 9
+
+# Test 2
+@pytest.mark.django_db
+def test_import_monster_attack_dc(client, monkeypatch, encounter):
+    monster_data = {
+        "name": "Test Dragon",
+        "hit_points": 100,
+        "armor_class": [{"value": 18}],
+        "strength": 20,
+        "dexterity": 10,
+        "constitution": 18,
+        "intelligence": 12,
+        "wisdom": 12,
+        "charisma": 15,
+        "proficiencies": [],
+        "actions": [
+            {
+                "name": "Fire Breath",
+                "desc": "The dragon exhales fire.",
+                "dc": {
+                    "dc_type": {
+                        "name": "DEX",
+                        "index": "dex",
+                    },
+                    "dc_value": 18,
+                    "success_type": "half",
+                },
+                "damage": [],
+            }
+        ],
+    }
+
+    mock_monster_api(monkeypatch, monster_data)
+
+    response = client.post(
+        reverse("core:import_enemy", kwargs={"encounter_id": encounter.pk}),
+        {"monster_index": "test-dragon"},
+    )
+
+    assert response.status_code == 200
+
+    character = Character.objects.get(name="Test Dragon")
+    attack = CharacterAttack.objects.get(
+        character=character,
+        name="Fire Breath",
+    )
+
+    assert attack.dc == 18
+    assert attack.dc_type == "DEX"
+    assert attack.dc_success == "half"
+
+# Test 3
+@pytest.mark.django_db
+def test_import_monster_attack_damage(client, monkeypatch, encounter):
+    monster_data = {
+        "name": "Test Dragon",
+        "hit_points": 100,
+        "armor_class": [{"value": 18}],
+        "strength": 20,
+        "dexterity": 10,
+        "constitution": 18,
+        "intelligence": 12,
+        "wisdom": 12,
+        "charisma": 15,
+        "proficiencies": [],
+        "actions": [
+            {
+                "name": "Bite",
+                "desc": "The dragon bites its target.",
+                "attack_bonus": 9,
+                "damage": [
+                    {
+                        "damage_dice": "2d10 + 6",
+                        "damage_type": {"name": "Piercing"},
+                    },
+                    {
+                        "damage_dice": "1d8",
+                        "damage_type": {"name": "Acid"},
+                    },
+                ],
+            }
+        ],
+    }
+
+    mock_monster_api(monkeypatch, monster_data)
+
+    response = client.post(
+        reverse("core:import_enemy", kwargs={"encounter_id": encounter.pk}),
+        {"monster_index": "test-dragon"},
+    )
+
+    assert response.status_code == 200
+
+    character = Character.objects.get(name="Test Dragon")
+    attack = CharacterAttack.objects.get(
+        character=character,
+        name="Bite",
+    )
+
+    damages = list(attack.damage_components.all().order_by("id"))
+
+    assert len(damages) == 2
+
+    assert damages[0].damage_dice == "2d10"
+    assert damages[0].damage_modifier == 6
+    assert damages[0].damage_type == "Piercing"
+
+    assert damages[1].damage_dice == "1d8"
+    assert damages[1].damage_modifier == 0
+    assert damages[1].damage_type == "Acid"
+
+#Test 4
+@pytest.mark.django_db
+def test_import_monster_to_selected_encounter(
+    client, monkeypatch, encounter
+):
+    from core.models import Encounter
+
+    second_encounter = Encounter.objects.create(
+        name="Second Encounter",
+        location="Test Location",
+    )
+
+    monster_data = {
+        "name": "Adult Black Dragon",
+        "hit_points": 195,
+        "armor_class": [{"value": 19}],
+        "strength": 23,
+        "dexterity": 14,
+        "constitution": 21,
+        "intelligence": 14,
+        "wisdom": 13,
+        "charisma": 17,
+        "proficiencies": [],
+        "actions": [
+            {
+                "name": "Bite",
+                "desc": "The dragon bites its target.",
+                "attack_bonus": 11,
+                "damage": [
+                    {
+                        "damage_dice": "2d10 + 6",
+                        "damage_type": {"name": "Piercing"},
+                    }
+                ],
+            }
+        ],
+    }
+
+    mock_monster_api(monkeypatch, monster_data)
+
+    response = client.post(
+        reverse(
+            "core:import_enemy",
+            kwargs={"encounter_id": second_encounter.pk},
+        ),
+        {"monster_index": "adult-black-dragon"},
+    )
+
+    assert response.status_code == 200
+
+    entry = CharacterEncounter.objects.get(
+        character__name="Adult Black Dragon",
+        encounter=second_encounter,
+    )
+
+    assert entry.character.max_hp == 195
+    assert entry.encounter == second_encounter
+
+    # Make sure it was not added to the other encounter.
+    assert not CharacterEncounter.objects.filter(
+        character=entry.character,
+        encounter=encounter,
+    ).exists()
+
+    # Also check that the attack was imported.
+    assert entry.character.attacks.filter(name="Bite").exists()
