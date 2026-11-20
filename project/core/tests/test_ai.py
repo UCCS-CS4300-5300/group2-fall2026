@@ -17,7 +17,7 @@ URL_OPEN_REF = "core.ai.ollama_backend.urlopen"
     ("rules", "rules assistant"),
 ])
 def test_chat_sends_selected_model_prompt_and_history_to_ollama(
-    client, monkeypatch, chat_type, expected_prompt
+    client, monkeypatch, chat_type, expected_prompt, ollama_backend_active
 ):
     monkeypatch.delenv("OLLAMA_DM_MODEL", raising=False)
     monkeypatch.delenv("OLLAMA_RULES_MODEL", raising=False)
@@ -102,7 +102,7 @@ def test_chat_rejects_overlong_message_with_clear_error(client):
     assert response.json() == {"error": "Message must be at most 4000 characters."}
 
 
-def test_chat_reports_when_ollama_is_not_running(client):
+def test_chat_reports_when_ollama_is_not_running(client, ollama_backend_active):
     with patch(URL_OPEN_REF, side_effect=URLError("connection refused")):
         response = client.post(reverse("core:chat"), {
             "chat_type": "dm",
@@ -114,7 +114,7 @@ def test_chat_reports_when_ollama_is_not_running(client):
     assert "Ollama is running locally" in response.json()["error"]
 
 
-def test_rules_chat_requires_a_configured_pdf(client, monkeypatch):
+def test_rules_chat_requires_a_configured_pdf(client, monkeypatch, ollama_backend_active):
     monkeypatch.delenv("RULES_PDF_PATH", raising=False)
     monkeypatch.setattr("core.ai.ollama_backend.DEFAULT_RULES_PDF", Path("missing-default-rules.pdf"))
 
@@ -128,7 +128,7 @@ def test_rules_chat_requires_a_configured_pdf(client, monkeypatch):
     assert "could not be found" in response.json()["error"]
 
 
-def test_rules_chat_reports_a_missing_pdf(client, monkeypatch):
+def test_rules_chat_reports_a_missing_pdf(client, monkeypatch, ollama_backend_active):
     monkeypatch.setenv("RULES_PDF_PATH", "missing-rules-reference.pdf")
 
     response = client.post(reverse("core:chat"), {
@@ -141,7 +141,7 @@ def test_rules_chat_reports_a_missing_pdf(client, monkeypatch):
     assert "could not be found" in response.json()["error"]
 
 
-def test_rules_chat_returns_no_supported_ruling_without_calling_model(client, monkeypatch):
+def test_rules_chat_returns_no_supported_ruling_without_calling_model(client, monkeypatch, ollama_backend_active):
     monkeypatch.setenv("RULES_PDF_PATH", "rules-reference.pdf")
     with patch(RETRIEVE_RULES_PDF_CONTEXT_FUNC, return_value=[]):
         with patch(URL_OPEN_REF) as urlopen:
