@@ -8,6 +8,7 @@ urlpatterns=[
     path("encounter/",views.add_encounter,name="add_encounter"),
     path("encounter/<int:encounter_id>/enemies/import/", views.import_enemy, name="import_enemy"),
     path("encounter/<int:encounter_id>/combatants/", views.add_combatant, name="add_combatant"),
+    path("encounter/<int:encounter_id>/combatants/clear/", views.clear_combatants, name="clear_combatants"),
     path("encounter/<int:encounter_id>/initiative/", views.roll_initiative, name="roll_initiative"),
     path("encounter/<int:encounter_id>/next-turn/", views.next_turn, name="next_turn"),
     path("enemies/", views.search_enemy, name="search_enemy"),

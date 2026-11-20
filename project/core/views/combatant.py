@@ -2,13 +2,15 @@ import json
 import math
 
 from django.db import transaction
-from django.http import HttpResponse, JsonResponse
+from django.db.models import F
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_http_methods, require_POST
 
 from ..forms import CharacterForm
 from ..models import CharacterEncounter, Encounter
+from .turns import turn_state
 
 # View to add combatant to encounter.
 @require_POST
@@ -31,6 +33,22 @@ def add_combatant(request, encounter_id):
     # Get HTML response for JavaScript
     html = render_to_string("core/encounter_combatant_card.html", {"entry":entry})
     return HttpResponse(html)
+
+
+@require_POST
+@transaction.atomic
+def clear_combatants(request, encounter_id):
+    updated = Encounter.objects.filter(pk=encounter_id).update(
+        turn_index=0,
+        turn_version=F("turn_version") + 1,
+    )
+    if not updated:
+        raise Http404
+
+    CharacterEncounter.objects.filter(encounter_id=encounter_id).delete()
+    encounter = Encounter.objects.get(pk=encounter_id)
+    return JsonResponse(turn_state(encounter))
+
 
 # View to move the location of a combatant/CharacterEncounter so the page "remembers" their last location
 @require_http_methods(["PATCH"])

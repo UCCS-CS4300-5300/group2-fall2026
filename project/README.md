@@ -65,13 +65,19 @@ picks up where you left off. Roll again to include a new combatant and restart
 at round 1. Use the "Back to encounters" link in the header to return to the
 dashboard.
 
+## Clearing combatants
+
+Use Clear encounter to remove all combatants from the current encounter and
+reset initiative. Quests, NPCs, character records, and the current page's log
+are kept.
+
 ## Editing combatants
 
-Click a combatant's name or any saving-throw bonus to edit it. Press Enter or
-click elsewhere to save; press Escape to cancel. Names and saving-throw bonuses
-belong to the character, so changes are saved in the database and appear in
-other encounters that use that same character. Current HP remains specific to
-each encounter.
+Click a combatant's name, armor class, or any saving-throw bonus to edit it.
+Press Enter or click elsewhere to save; press Escape to cancel. Names, armor
+class, and saving-throw bonuses belong to the character, so changes are saved in
+the database and appear in other encounters that use that same character.
+Current HP remains specific to each encounter.
 
 ## AI chats
 
@@ -149,8 +155,8 @@ and pushes to main. The workflow is in `.github/workflows/tests.yml`.
 
 ## Current limits
 
-Attack and Clear encounter are still placeholders. Bootstrap loads from a CDN,
-so the styling and modals need an internet connection.
+Attack is still a placeholder. Bootstrap loads from a CDN, so the styling and
+modals need an internet connection.
 
 ## Development notes
 

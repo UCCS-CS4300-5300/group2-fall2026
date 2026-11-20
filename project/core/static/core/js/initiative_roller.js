@@ -39,6 +39,11 @@ export function setupInitiativeRoller() {
         }
     }
 
+    board.addEventListener("combatants:cleared", (event) => {
+        turn = event.detail;
+        showTurn();
+    });
+
     async function saveTurn(url, body) {
         rollButton.disabled = true;
         nextButton.disabled = true;

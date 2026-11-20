@@ -1,7 +1,8 @@
 import pytest
+from django.test import Client
 from django.urls import reverse
 
-from ..models import Character, CharacterEncounter, Encounter
+from ..models import Character, CharacterEncounter, Encounter, NPC, Quest
 
 pytestmark = pytest.mark.django_db
 
@@ -109,6 +110,67 @@ def test_home_defend_target_picker_lists_encounter_combatants(client, encounter,
     assert response.status_code == 200
     assert b'<option value="">Choose a target...</option>' in response.content
     assert f'<option value="{combatant.pk}">Goblin</option>'.encode() in response.content
+
+
+def test_clear_combatants_preserves_other_encounter_data(client, combatant):
+    encounter = combatant.encounter
+    character = Character.objects.create(name="Second Goblin", max_hp=8, armor_class=12)
+    CharacterEncounter.objects.create(
+        character=character, encounter=encounter, remaining_hp=8, initiative=9
+    )
+    other_encounter = Encounter.objects.create(name="Other encounter")
+    other_character = Character.objects.create(
+        name="Other Goblin", max_hp=6, armor_class=11
+    )
+    other_combatant = CharacterEncounter.objects.create(
+        character=other_character, encounter=other_encounter, remaining_hp=6
+    )
+    quest = Quest.objects.create(encounter=encounter, text="Find the hidden passage")
+    npc = NPC.objects.create(encounter=encounter, name="Mira", notes="Village guide")
+    encounter.turn_index = 3
+    encounter.turn_version = 4
+    encounter.save(update_fields=["turn_index", "turn_version"])
+
+    url = reverse("core:clear_combatants", kwargs={"encounter_id": encounter.pk})
+    page_before = client.get(
+        reverse("core:encounter", kwargs={"encounter_id": encounter.pk})
+    )
+    assert f'data-url="{url}"'.encode() in page_before.content
+
+    response = client.post(url)
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "turn_version": 5,
+        "turn_index": 0,
+        "round": 0,
+        "active_id": None,
+        "rolls": {},
+    }
+    assert not CharacterEncounter.objects.filter(encounter=encounter).exists()
+    assert CharacterEncounter.objects.filter(pk=other_combatant.pk).exists()
+    assert Character.objects.filter(
+        pk__in=[combatant.character_id, character.pk]
+    ).count() == 2
+    assert Quest.objects.filter(pk=quest.pk).exists()
+    assert NPC.objects.filter(pk=npc.pk).exists()
+
+    page = client.get(reverse("core:encounter", kwargs={"encounter_id": encounter.pk}))
+    assert page.status_code == 200
+    assert b"No combatants yet." in page.content
+    assert b"Find the hidden passage" in page.content
+
+
+def test_clear_combatants_requires_post_and_csrf(combatant):
+    url = reverse(
+        "core:clear_combatants", kwargs={"encounter_id": combatant.encounter_id}
+    )
+    csrf_client = Client(enforce_csrf_checks=True)
+
+    assert csrf_client.get(url).status_code == 405
+    assert csrf_client.post(url).status_code == 403
+    assert CharacterEncounter.objects.filter(pk=combatant.pk).exists()
+
 
 def test_saving_throw_controls_and_combatant_bonus_data_are_rendered(client, combatant):
     combatant.character.dexterity_save_bonus = -2

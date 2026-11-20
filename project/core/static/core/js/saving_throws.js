@@ -85,6 +85,13 @@ export function setupSavingThrowRoller() {
         error.textContent = "";
     });
 
+    board.addEventListener("combatants:cleared", () => {
+        selectedCombatant = null;
+        selectedTarget.textContent = "No combatant selected";
+        result.textContent = "";
+        error.textContent = "";
+    });
+
     form.addEventListener("submit", (event) => {
         event.preventDefault();
         result.textContent = "";

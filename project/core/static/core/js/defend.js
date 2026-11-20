@@ -142,6 +142,14 @@ export function setupDefend() {
     });
     damageInput.addEventListener("input", updateControls);
     new MutationObserver(syncTargetOptions).observe(board, { childList: true, subtree: true });
+    board.addEventListener("combatants:cleared", () => {
+        selectedTargets.clear();
+        targetList.replaceChildren();
+        syncTargetOptions();
+        status.classList.remove("text-danger");
+        status.textContent = "";
+        updateControls();
+    });
     syncTargetOptions();
     updateControls();
 
