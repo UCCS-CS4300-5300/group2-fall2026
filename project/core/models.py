@@ -55,6 +55,33 @@ class Character(models.Model):
     def __str__(self):
         return self.name
 
+class CharacterAttack(models.Model):
+    character = models.ForeignKey(Character, on_delete=models.CASCADE, related_name="attacks",)
+
+    name = models.CharField(max_length=120)
+    description = models.TextField(blank=True)
+
+    attack_bonus = models.IntegerField(null=True, blank=True)
+
+    dc = models.IntegerField(null=True, blank=True)
+    dc_type = models.CharField(max_length=30, blank=True)
+    dc_success = models.CharField(max_length=30, blank=True)
+
+    def __str__(self):
+        return f"{self.character.name} - {self.name}"
+
+
+class AttackDamage(models.Model):
+    attack = models.ForeignKey(CharacterAttack, on_delete=models.CASCADE, related_name="damage_components",)
+
+    damage_dice = models.CharField(max_length=50)
+    damage_modifier = models.IntegerField(default=0)
+    damage_type = models.CharField(max_length=50, blank=True)
+
+    def __str__(self):
+        return f"{self.damage_dice} {self.damage_type}"
+
+
 # Encounter class. Includes a list of multiple characters.
 class Encounter(models.Model):
     name = models.CharField(max_length=120)

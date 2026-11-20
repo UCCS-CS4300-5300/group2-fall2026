@@ -37,7 +37,7 @@ from .forms import QuestForm
 from .models import Encounter
 from .models import CharacterEncounter
 from .models import Quest
-from .models import Character
+from .models import Character, CharacterAttack, AttackDamage
 
 from .forms import CharacterForm
 
@@ -403,8 +403,46 @@ def import_enemy(request):
         charisma_save_bonus=saving_throws["charisma"],
     )
 
+
     # Add character to encounter
     with transaction.atomic():
+        for action in monster.get("actions", []):
+            dc_info = action.get("dc") or {}
+            dc_type_info = dc_info.get("dc_type") or {}
+
+            attack = CharacterAttack.objects.create(
+                character=character,
+                name=action.get("name", "Unknown attack"),
+                description=action.get("desc", ""),
+                attack_bonus=action.get("attack_bonus"),
+                dc = dc_info.get("dc_value"),
+                dc_type = dc_type_info.get("name", ""),
+                dc_success = dc_info.get("success_type", ""),
+            )
+
+            for damage in action.get("damage", []):
+                formula = (damage.get("damage_dice") or "").strip()
+
+                match = re.search(r"\s*([+-])\s*(\d+)\s*$", formula)
+
+                modifier = 0
+
+                if match:
+                    modifier = int(match.group(2))
+
+                    if match.group(1) == "-":
+                        modifier *= -1
+
+                    dice = formula[:match.start()].strip()
+                else:
+                    dice = formula
+
+                AttackDamage.objects.create(
+                    attack=attack,
+                    damage_dice=dice,
+                    damage_modifier=modifier,
+                    damage_type=damage.get("damage_type", {}).get("name", ""),
+                )
         encounter, _ = Encounter.objects.get_or_create(name="test_encounter")
         entry = CharacterEncounter.objects.create(
             character=character,
