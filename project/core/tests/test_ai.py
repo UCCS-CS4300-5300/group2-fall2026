@@ -6,7 +6,7 @@ from unittest.mock import patch
 import pytest
 from django.urls import reverse
 
-from .ai import _retrieve_rules_pdf_context
+from ..ai import _retrieve_rules_pdf_context
 
 RETRIEVE_RULES_PDF_CONTEXT_FUNC = "core.ai._retrieve_rules_pdf_context"
 LOAD_RULES_PDF_PAGES_FUNC = "core.ai._load_rules_pdf_pages"

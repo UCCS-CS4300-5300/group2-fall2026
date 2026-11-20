@@ -5,7 +5,7 @@ from urllib.error import URLError, HTTPError
 from io import BytesIO
 
 from django.urls import reverse
-from .models import Character, CharacterEncounter
+from ..models import Character, CharacterEncounter
 
 def mock_api_response(data):
     """Create a fake API response containing JSON data. """

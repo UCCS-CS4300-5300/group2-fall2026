@@ -1,6 +1,6 @@
 import pytest
 
-from .models import Character, CharacterEncounter, Encounter
+from ..models import Character, CharacterEncounter, Encounter
 
 # Global fixtures
 @pytest.fixture
