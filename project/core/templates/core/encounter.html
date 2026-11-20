@@ -18,18 +18,18 @@
     </head>
 
     <body>
-        <div class="topbar d-flex align-items-center px-3 py-2 gap-3">
+        <div class="topbar d-flex flex-wrap align-items-center px-3 py-2 gap-3">
+            <a class="btn btn-sm btn-outline-light text-nowrap" href="{% url 'core:dashboard' %}">Back to encounters</a>
             <h1 class="h4 m-0">Encounter Helper</h1>
             <input
                 id="encounterName"
                 class="form-control form-control-sm w-auto"
-                value="Goblin Ambush"
+                value="{{ encounter.name }}"
                 aria-label="Encounter name"
             />
-            <span id="turnInfo" class="ms-auto small text-secondary"
-                >Roll initiative to begin</span
-            >
+            <span id="turnInfo" class="ms-auto small text-break" role="status">Roll initiative to begin</span>
         </div>
+        {{ turn|json_script:"initialTurn" }}
 
         <div class="main">
             <div class="left">
@@ -60,16 +60,29 @@
                     >
                         Add combatant
                     </button>
-                    <button class="btn btn-outline-light" id="initBtn">
+                    <button class="btn btn-outline-light" id="initBtn" data-url="{% url 'core:roll_initiative' encounter.id %}">
                         Roll initiative
                     </button>
-                    <button class="btn btn-danger" id="attackBtn" disabled>
+                    <button
+                        class="btn btn-danger"
+                        id="attackBtn"
+                        data-bs-toggle="modal"
+                        data-bs-target="#attackModal"
+                    >
                         Attack
                     </button>
-                    <button class="btn btn-outline-light" id="nextBtn" disabled>
+                    <button
+                        class="btn btn-primary"
+                        id="defendBtn"
+                        data-bs-toggle="modal"
+                        data-bs-target="#defendModal"
+                    >
+                        Defend
+                    </button>
+                    <button class="btn btn-outline-light" id="nextBtn" data-url="{% url 'core:next_turn' encounter.id %}" disabled>
                         Next turn
                     </button>
-                    <span id="hint" class="small text-secondary ms-2"></span>
+                    <span id="hint" class="small text-warning ms-2" role="status"></span>
                     <button
                         class="btn btn-sm btn-outline-secondary ms-auto"
                         id="resetBtn"
@@ -79,7 +92,17 @@
                 </div>
             </div>
 
-            <aside class="side">
+            <div
+                id="panelDivider"
+                class="panel-divider"
+                role="separator"
+                tabindex="0"
+                aria-label="Resize tools panel"
+                aria-orientation="vertical"
+                aria-controls="toolsPanel"
+                title="Drag to resize panels, or use the Left and Right arrow keys."
+            ></div>
+            <aside class="side" id="toolsPanel">
                 <ul class="nav nav-tabs px-2 pt-2" role="tablist">
                     <li class="nav-item">
                         <button
@@ -190,7 +213,7 @@
                         <div id="log"></div>
                     </div>
                     <div class="tab-pane fade" id="questTab">
-                        <form id="questForm" class="input-group mb-3" method="post" action="{% url 'core:add_quest' %}">
+                        <form id="questForm" class="input-group mb-3" method="post" action="{% url 'core:add_quest' encounter.pk %}">
                             {% csrf_token %}
                             <input
                                 id="questInput"
@@ -213,7 +236,7 @@
                         </ul>
                         <noscript><p class="small text-danger">Enable JavaScript to manage quests and notes.</p></noscript>
                     </div>
-                    {% include "core/npc_tab.html" %}
+                    {% include "core/npc_tab.html" with encounter=encounter %}
                     <div class="tab-pane fade" id="aiTab">
                         <div id="dmMessages" class="chat-messages mb-2" aria-live="polite"></div>
                         <p id="dmChatStatus" class="small text-secondary" role="status"></p>
@@ -242,7 +265,7 @@
                     </div>
                     <div class="tab-pane fade" id="enemyTab">
                         <h2 class="h6 mb-3">Enemy Presets</h2>
-                        <form id="enemyForm" class="input-group mb-3">
+                        <form id="enemyForm" class="input-group mb-3" action="{% url 'core:search_enemy' %}">
                             <input
                                 id="enemyInput"
                                 class="form-control"
@@ -260,7 +283,7 @@
                             role="status"
                             aria-live="polite"
                         ></p>
-                        <div id="enemyResults"></div>
+                        <div id="enemyResults" data-import-url="{% url 'core:import_enemy' encounter.pk %}"></div>
                     </div>
                 </div>
             </aside>
@@ -269,7 +292,7 @@
         <!-- Add combatant modal -->
         <div class="modal fade" id="addModal" tabindex="-1">
             <div class="modal-dialog">
-                <form class="modal-content" id="addForm" method="post" action="{% url 'core:add_combatant' %}">
+                <form class="modal-content" id="addForm" method="post" action="{% url 'core:add_combatant' encounter.pk %}">
                     {% csrf_token %}
                     <div class="modal-header">
                         <h5 class="modal-title">Add combatant</h5>
@@ -350,6 +373,118 @@
                         <button class="btn btn-brass">Add to encounter</button>
                     </div>
                 </form>
+            </div>
+        </div>
+        <div class="modal fade" id="attackModal" tabindex="-1" aria-labelledby="attackModalTitle" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="modal-title h5" id="attackModalTitle">Attack</h2>
+                        <button
+                            type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"
+                        ></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-secondary mb-0">Attack controls will appear here.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="defendModal" tabindex="-1" aria-labelledby="defendModalTitle" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="modal-title h5" id="defendModalTitle">Defend</h2>
+                        <button
+                            type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"
+                        ></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="defendForm">
+                            <div class="mb-4">
+                                <label for="defendDamage" class="form-label">Damage / Healing</label>
+                                <input
+                                    id="defendDamage"
+                                    name="damage"
+                                    type="number"
+                                    step="1"
+                                    value="0"
+                                    class="form-control"
+                                    required
+                                />
+                                <div class="form-text">Use a negative amount to heal. A value of 0 will still roll saving throws.</div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="defendTargetSelect" class="form-label">Add targets from this encounter</label>
+                                <div class="input-group">
+                                    <select id="defendTargetSelect" class="form-select" aria-label="Choose an encounter target">
+                                        <option value="">Choose a target...</option>
+                                        {% for item in items %}
+                                        <option value="{{ item.id }}">{{ item.character.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button id="addDefendTarget" class="btn btn-outline-light" type="button">Add target</button>
+                                </div>
+                                <p id="defendNoTargets" class="form-text mb-0 mt-2">No targets selected yet.</p>
+                                <ul id="defendTargetList" class="list-group mt-2" aria-label="Selected targets"></ul>
+                            </div>
+
+                            <fieldset class="mb-3">
+                                <legend class="form-label">Resolution</legend>
+                                <div class="btn-group w-100" role="group" aria-label="Attack roll or saving throw">
+                                    <input class="btn-check" type="radio" name="defendMode" id="defendModeAttack" value="attack" checked />
+                                    <label class="btn btn-outline-light" for="defendModeAttack">Attack Roll</label>
+                                    <input class="btn-check" type="radio" name="defendMode" id="defendModeSave" value="save" />
+                                    <label class="btn btn-outline-light" for="defendModeSave">Saving Throws</label>
+                                </div>
+                            </fieldset>
+
+                            <div id="defendAttackFields" class="mb-3">
+                                <label for="defendAttackRoll" class="form-label">Attack Roll</label>
+                                <input id="defendAttackRoll" name="attack_roll" type="number" step="1" class="form-control" />
+                                <div class="form-text">A target is hit only when the roll is greater than its AC.</div>
+                            </div>
+
+                            <div id="defendSaveFields" class="mb-3" hidden>
+                                <div class="row g-3 align-items-end">
+                                    <div class="col-sm-6">
+                                        <label for="defendDc" class="form-label">DC</label>
+                                        <input id="defendDc" name="dc" type="number" step="1" class="form-control" />
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="form-check">
+                                            <input id="halfDamageOnSave" name="half_damage_on_save" type="checkbox" class="form-check-input" />
+                                            <label for="halfDamageOnSave" class="form-check-label">Half Damage on Save</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <fieldset class="mt-3">
+                                    <legend class="form-label">Saving throw ability</legend>
+                                    <div class="row row-cols-3 row-cols-sm-6 g-2">
+                                        <div class="col"><input class="btn-check" type="radio" name="saveAbility" id="saveStr" value="strength" checked /><label class="btn btn-outline-secondary w-100" for="saveStr">STR</label></div>
+                                        <div class="col"><input class="btn-check" type="radio" name="saveAbility" id="saveDex" value="dexterity" /><label class="btn btn-outline-secondary w-100" for="saveDex">DEX</label></div>
+                                        <div class="col"><input class="btn-check" type="radio" name="saveAbility" id="saveCon" value="constitution" /><label class="btn btn-outline-secondary w-100" for="saveCon">CON</label></div>
+                                        <div class="col"><input class="btn-check" type="radio" name="saveAbility" id="saveInt" value="intelligence" /><label class="btn btn-outline-secondary w-100" for="saveInt">INT</label></div>
+                                        <div class="col"><input class="btn-check" type="radio" name="saveAbility" id="saveWis" value="wisdom" /><label class="btn btn-outline-secondary w-100" for="saveWis">WIS</label></div>
+                                        <div class="col"><input class="btn-check" type="radio" name="saveAbility" id="saveCha" value="charisma" /><label class="btn btn-outline-secondary w-100" for="saveCha">CHA</label></div>
+                                    </div>
+                                </fieldset>
+                            </div>
+
+                            <div id="defendStatus" class="small mb-3" role="status" aria-live="polite"></div>
+                            <div class="d-flex justify-content-end">
+                                <button id="applyDefend" class="btn btn-brass" type="submit" disabled>Defend</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
 

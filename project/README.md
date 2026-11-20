@@ -18,6 +18,13 @@ For Sprint 1, use a fresh checkout and database. Earlier migration files were
 changed, so upgrading an older local database is not supported yet. Keep any
 older database as a backup; do not delete it to get the app running.
 
+## Panel sizes
+
+Drag the divider between the encounter and tools to give either panel more room.
+You can also focus the divider and use the Left and Right arrow keys. Both panels
+stop at a minimum width so the controls stay usable; text size does not change.
+Narrow windows keep the stacked layout. Reloading resets the panel sizes.
+
 ## Quests and notes
 
 Use the Quests tab to add a quest or note, check it off, reopen it, or delete it.
@@ -48,6 +55,23 @@ it does not change HP or initiative.
 Other frontend features can import `rollDice(sides, count)` from `dice.js`.
 It takes numbers and returns `{ sides, count, rolls, total }`. It does not update
 the page or save character data. The old `/dice/roll/` endpoint is removed.
+
+## Encounter turns
+
+Roll initiative to start round 1. The highest roll goes first, with ties going
+in the order the combatants were added. Next turn moves the highlight to the
+next card and starts a new round after the last one. Reopening the encounter
+picks up where you left off. Roll again to include a new combatant and restart
+at round 1. Use the "Back to encounters" link in the header to return to the
+dashboard.
+
+## Editing combatants
+
+Click a combatant's name or any saving-throw bonus to edit it. Press Enter or
+click elsewhere to save; press Escape to cancel. Names and saving-throw bonuses
+belong to the character, so changes are saved in the database and appear in
+other encounters that use that same character. Current HP remains specific to
+each encounter.
 
 ## AI chats
 
@@ -125,11 +149,8 @@ and pushes to main. The workflow is in `.github/workflows/tests.yml`.
 
 ## Current limits
 
-The dashboard still uses one placeholder encounter. The player/enemy selector
-does not change the saved character type yet. Initiative, attacks, next turn,
-clear encounter, and AI chat are not implemented. Character cards and
-their positions are saved in the local SQLite database. Bootstrap loads from a
-CDN, so the styling and modal need an internet connection.
+Attack and Clear encounter are still placeholders. Bootstrap loads from a CDN,
+so the styling and modals need an internet connection.
 
 ## Development notes
 

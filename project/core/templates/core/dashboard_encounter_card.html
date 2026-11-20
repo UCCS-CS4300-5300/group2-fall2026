@@ -1,0 +1,47 @@
+<div class="col-12 col-sm-6 col-lg-4 col-xl-3 encounter-col" id="encounter-{{ encounter.id }}" data-encounter-col="{{ encounter.id }}">
+    <article
+        class="encounter-card"
+    >
+        <h5 class="name h6 m-0 mb-1">
+            <a href="{% url 'core:encounter' encounter.id %}" class="stretched-link">{{ encounter.name }}</a>
+        </h5>
+
+        {% if encounter.location or encounter.description %}
+        <div class="encounter-preview mb-3">
+            {% if encounter.location %}
+                <div class="encounter-location" title="{{ encounter.location }}">
+                    {{ encounter.location }}
+                </div>
+            {% endif %}
+            {% if encounter.description %}
+                <p class="encounter-description m-0" title="{{ encounter.description }}">
+                    {{ encounter.description }}
+                </p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="encounter-footer">
+            <div class="d-flex gap-3 small mb-3">
+                <span>Players <strong>{{ encounter.player_count|default:0 }}</strong></span>
+                <span>Enemies <strong>{{ encounter.enemy_count|default:0 }}</strong></span>
+            </div>
+
+            <div class="encounter-actions d-flex gap-2">
+                <a href="{% url 'core:encounter' encounter.id %}" class="btn btn-brass btn-sm">Open</a>
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary ms-auto js-delete-encounter"
+                    data-bs-toggle="modal"
+                    data-bs-target="#deleteModal"
+                    aria-label="Delete {{ encounter.name }}"
+                    data-id="{{ encounter.id }}"
+                    data-name="{{ encounter.name }}"
+                    data-delete-url="{% url 'core:encounter' encounter.id%}"
+                >
+                    Delete
+                </button>
+            </div>
+        </div>
+    </article>
+</div>

@@ -1,0 +1,48 @@
+core/models.py
+    C 4:0 Character - A (3)
+    M 50:4 Character.get_modifier - A (3)
+    C 97:0 NPC - A (2)
+    M 55:4 Character.__str__ - A (1)
+    C 59:0 Encounter - A (1)
+    C 69:0 CharacterEncounter - A (1)
+    C 89:0 Quest - A (1)
+    M 103:4 NPC.__str__ - A (1)
+core/conftest.py
+    F 7:0 encounter - A (1)
+    F 12:0 combatant - A (1)
+core/views.py
+    F 496:0 chat - D (27)
+    F 613:0 chat - D (27)
+    F 270:0 search_enemy - B (9)
+    F 367:0 import_enemy - B (9)
+    F 90:0 _retrieve_rules_pdf_context - B (8)
+    F 161:0 _retrieve_rules_pdf_context - B (8)
+    F 196:0 update_encounter - A (5)
+    F 786:0 quest_detail - A (5)
+    F 187:0 encounter_detail - A (4)
+    F 82:0 _load_rules_pdf_pages - A (3)
+    F 153:0 _load_rules_pdf_pages - A (3)
+    F 815:0 update_hp - A (3)
+    F 843:0 update_initiative - A (3)
+    F 246:0 add_encounter - A (2)
+    F 258:0 delete_encounter - A (2)
+    F 731:0 add_combatant - A (2)
+    F 753:0 move_combatant - A (2)
+    F 770:0 add_quest - A (2)
+    F 217:0 get_encounter - A (1)
+    F 232:0 dashboard - A (1)
+core/forms.py
+    C 59:0 EncounterForm - B (9)
+    M 68:4 EncounterForm.__init__ - B (8)
+    C 21:0 CharacterForm - A (4)
+    M 44:4 CharacterForm.clean - A (3)
+    C 8:0 NPCForm - A (1)
+    C 14:0 QuestForm - A (1)
+core/npc_views.py
+    F 10:0 npcs - A (3)
+    F 25:0 npc_detail - A (3)
+
+38 blocks (classes, functions, methods) analyzed.
+Average complexity: A (4.552631578947368)
+
+Exit status: 0

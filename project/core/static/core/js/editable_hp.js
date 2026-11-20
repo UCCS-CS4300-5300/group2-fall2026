@@ -52,6 +52,21 @@ export function setupEditableHp() {
 function makeHpReadOnly(el) {
     const { remaining, max } = el.dataset;
     el.innerHTML = `<strong>${remaining}</strong> / <span>${max}</span>`;
+    updateHpBar(el, remaining, max);
+}
+
+function updateHpBar(el, remaining, max) {
+    const fill = el.closest(".combatant")?.querySelector(".hp-fill");
+    if (!fill) return;
+
+    const remainingHp = Number(remaining);
+    const maxHp = Number(max);
+    const ratio = Number.isFinite(remainingHp) && Number.isFinite(maxHp) && maxHp > 0
+        ? Math.max(0, Math.min(remainingHp / maxHp, 1))
+        : 0;
+
+    fill.style.width = `${ratio * 100}%`;
+    fill.style.backgroundColor = `hsl(${120 * ratio} 70% 45%)`;
 }
 
 function makeHpEditable(el, combatant_id) {
