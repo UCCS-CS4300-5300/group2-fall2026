@@ -62,7 +62,16 @@ Roll initiative to start round 1. The highest roll goes first, with ties going
 in the order the combatants were added. Next turn moves the highlight to the
 next card and starts a new round after the last one. Reopening the encounter
 picks up where you left off. Roll again to include a new combatant and restart
-at round 1.
+at round 1. Use the "Back to encounters" link in the header to return to the
+dashboard.
+
+## Editing combatants
+
+Click a combatant's name or any saving-throw bonus to edit it. Press Enter or
+click elsewhere to save; press Escape to cancel. Names and saving-throw bonuses
+belong to the character, so changes are saved in the database and appear in
+other encounters that use that same character. Current HP remains specific to
+each encounter.
 
 ## AI chats
 
