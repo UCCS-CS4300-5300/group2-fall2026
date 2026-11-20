@@ -1,45 +1,40 @@
+# Django Imports
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.db import transaction
 from django.template.loader import render_to_string
-from django.views.decorators.http import require_POST, require_http_methods, require_GET
-from urllib.error import HTTPError, URLError
-from urllib.parse import urlencode
-from urllib.request import urlopen
+from django.views.decorators.http import (
+    require_POST,
+    require_http_methods,
+    require_GET,
+)
 
 import json
 import os
 import random
 import re
-from functools import lru_cache
-from pathlib import Path
-from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
-
-from pypdf import PdfReader
-from pypdf.errors import PdfReadError
 import math
-import os
-import random
-import re
+
 from functools import lru_cache
 from pathlib import Path
 from urllib.error import HTTPError, URLError
+from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
+# PDF imports
 from pypdf import PdfReader
 from pypdf.errors import PdfReadError
 
-from pypdf import PdfReader
-from pypdf.errors import PdfReadError
-
-from .forms import QuestForm
-from .models import Encounter
-from .models import CharacterEncounter
-from .models import Quest
-from .models import Character, CharacterAttack, AttackDamage
-
-from .forms import CharacterForm
+# Project Imports
+from .forms import QuestForm, CharacterForm
+from .models import (
+    Encounter,
+    CharacterEncounter,
+    Quest,
+    Character,
+    CharacterAttack,
+    AttackDamage,
+)
 
 
 CHAT_SYSTEM_PROMPTS = {
