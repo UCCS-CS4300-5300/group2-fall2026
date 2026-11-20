@@ -5,6 +5,7 @@ import { setupPanelResize } from "./panel_resize.js";
 import { setupPreset } from "./enemy_presets.js";
 import { setupSelectableCharacterCard } from "./character_select.js";
 import { setupEditableHp } from "./editable_hp.js";
+import { setupEditableCharacterFields } from "./editable_character.js";
 import { setupInitiativeRoller } from "./initiative_roller.js";
 import { setupDefend } from "./defend.js";
 import { setupSavingThrowRoller } from "./saving_throws.js";
@@ -17,6 +18,7 @@ setupQuests()
 setupPanelResize()
 setupPreset() 
 setupEditableHp() // Make character current HP editable
+setupEditableCharacterFields()
 setupInitiativeRoller()
 setupDefend()
 setupSavingThrowRoller()
