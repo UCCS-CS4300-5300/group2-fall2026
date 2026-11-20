@@ -16,5 +16,6 @@ urlpatterns=[
     path("encounter/<int:encounter_id>/quests/", views.add_quest, name="add_quest"),
     path("quests/<int:quest_id>", views.quest_detail, name="quest_detail"),
     path("character/<int:entry_id>/hp/", views.update_hp, name="update_hp"),
-    path("character/<int:entry_id>/initiative/", views.update_initiative, name="update_initiative")
+    path("character/<int:entry_id>/initiative/", views.update_initiative, name="update_initiative"),
+    path("character/<int:entry_id>/details/", views.update_character_details, name="update_character_details"),
 ]
