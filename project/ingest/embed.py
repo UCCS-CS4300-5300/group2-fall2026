@@ -14,11 +14,11 @@ import numpy as np
 
 load_dotenv()
 
-DIMS = 768
 BATCH = 25
 PAUSE = 4
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 EMBEDDING_MODEL = os.environ.get("EMBEDDING_MODEL", "gemini-embedding-001") # Using an environment variable since this needs to be the same as the model used to embed the questions
+DIMS = os.environ.get("EMBEDDING_DIMS", 768)
 CHUNKS_PATH = Path(__file__).resolve().parent.parent / "ingest" / "chunks.json"
 OUT_DIR = CHUNKS_PATH.parent
 PARTIAL = OUT_DIR / "embeddings_partial.npy"
