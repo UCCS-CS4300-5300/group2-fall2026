@@ -424,13 +424,12 @@ def import_enemy(request, encounter_id):
                     damage_modifier=modifier,
                     damage_type=damage.get("damage_type", {}).get("name", ""),
                 )
-        encounter, _ = Encounter.objects.get_or_create(name="test_encounter")
+        encounter= get_object_or_404(Encounter, pk=encounter_id)
         entry = CharacterEncounter.objects.create(
             character=character,
             encounter=encounter,
             remaining_hp=character.max_hp,
         )
-
     # Return combatant card HTML
     html = render_to_string(
         "core/encounter_combatant_card.html",
