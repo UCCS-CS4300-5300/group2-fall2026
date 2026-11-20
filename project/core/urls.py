@@ -1,5 +1,6 @@
 from django.urls import path
-from . import turns, views
+from . import turns
+from .views import views
 
 app_name="core"
 urlpatterns=[
