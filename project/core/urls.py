@@ -14,6 +14,7 @@ urlpatterns=[
     path("enemies/", views.search_enemy, name="search_enemy"),
     path("chat/", views.chat, name="chat"),
     path("combatants/<int:entry_id>/", views.move_combatant, name="move_combatant"),
+    path("combatants/<int:entry_id>/remove/", views.remove_combatant, name="remove_combatant"),
     path("encounter/<int:encounter_id>/quests/", views.add_quest, name="add_quest"),
     path("quests/<int:quest_id>", views.quest_detail, name="quest_detail"),
     path("character/<int:entry_id>/hp/", views.update_hp, name="update_hp"),

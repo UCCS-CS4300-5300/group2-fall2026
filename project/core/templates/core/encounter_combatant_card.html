@@ -22,6 +22,7 @@
     data-update-hp-url="{% url 'core:update_hp' entry.id %}"
     data-update-initiative-url="{% url 'core:update_initiative' entry.id %}"
     data-update-character-url="{% url 'core:update_character_details' entry.id %}"
+    data-remove-url="{% url 'core:remove_combatant' entry.id %}"
 >
     <!-- Show initiative if it is non-zero -->
     {% if entry.initiative == 0 %}
@@ -34,9 +35,10 @@
         <h5 class="h6 m-0">
             <button type="button" class="name editable-character-field" data-character-field="name" title="Click to edit name" aria-label="Edit combatant name: {{char.name}}">{{char.name}}</button>
         </h5>
-        <span class="small text-secondary text-uppercase"
-            >{{char.char_type|default:"enemy"}}</span
-        >
+        <div class="d-flex align-items-center gap-1">
+            <span class="small text-secondary text-uppercase">{{char.char_type|default:"enemy"}}</span>
+            <button type="button" class="combatant-remove" aria-label="Remove {{char.name}} from encounter" title="Remove combatant">×</button>
+        </div>
     </div>
     <div class="hp-track my-2">
         <div class="hp-fill"></div>

@@ -172,6 +172,85 @@ def test_clear_combatants_requires_post_and_csrf(combatant):
     assert CharacterEncounter.objects.filter(pk=combatant.pk).exists()
 
 
+def test_remove_combatant_preserves_character_notes_and_other_encounters(client, combatant):
+    encounter = combatant.encounter
+    next_character = Character.objects.create(name="Next Goblin", max_hp=8, armor_class=12)
+    next_combatant = CharacterEncounter.objects.create(
+        character=next_character, encounter=encounter, remaining_hp=8, initiative=10
+    )
+    other_encounter = Encounter.objects.create(name="Other encounter")
+    shared_entry = CharacterEncounter.objects.create(
+        character=combatant.character,
+        encounter=other_encounter,
+        remaining_hp=6,
+        initiative=12,
+    )
+    quest = Quest.objects.create(encounter=encounter, text="Find the hidden passage")
+    npc = NPC.objects.create(encounter=encounter, name="Mira", notes="Village guide")
+    encounter.turn_index = 0
+    encounter.turn_version = 3
+    encounter.save(update_fields=["turn_index", "turn_version"])
+
+    url = reverse("core:remove_combatant", args=[combatant.pk])
+    page_before = client.get(reverse("core:encounter", args=[encounter.pk]))
+    assert f'data-remove-url="{url}"'.encode() in page_before.content
+
+    response = client.delete(url)
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "turn_version": 4,
+        "turn_index": 0,
+        "round": 1,
+        "active_id": next_combatant.pk,
+        "rolls": {str(next_combatant.pk): 10},
+    }
+    assert not CharacterEncounter.objects.filter(pk=combatant.pk).exists()
+    assert CharacterEncounter.objects.filter(pk=next_combatant.pk).exists()
+    assert CharacterEncounter.objects.filter(pk=shared_entry.pk).exists()
+    assert Character.objects.filter(pk=combatant.character_id).exists()
+    assert Quest.objects.filter(pk=quest.pk).exists()
+    assert NPC.objects.filter(pk=npc.pk).exists()
+
+
+def test_remove_combatant_requires_delete_and_csrf(client, combatant):
+    url = reverse("core:remove_combatant", args=[combatant.pk])
+    csrf_client = Client(enforce_csrf_checks=True)
+
+    assert client.get(url).status_code == 405
+    assert client.post(url).status_code == 405
+    assert csrf_client.delete(url).status_code == 403
+    assert CharacterEncounter.objects.filter(pk=combatant.pk).exists()
+
+
+def test_remove_already_acted_combatant_keeps_active_turn(client, combatant):
+    encounter = combatant.encounter
+    active_character = Character.objects.create(name="Active Goblin", max_hp=8, armor_class=12)
+    active_combatant = CharacterEncounter.objects.create(
+        character=active_character, encounter=encounter, remaining_hp=8, initiative=10
+    )
+    later_character = Character.objects.create(name="Later Goblin", max_hp=8, armor_class=12)
+    later_combatant = CharacterEncounter.objects.create(
+        character=later_character, encounter=encounter, remaining_hp=8, initiative=4
+    )
+    encounter.turn_index = 1
+    encounter.save(update_fields=["turn_index"])
+
+    response = client.delete(reverse("core:remove_combatant", args=[combatant.pk]))
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "turn_version": 1,
+        "turn_index": 0,
+        "round": 1,
+        "active_id": active_combatant.pk,
+        "rolls": {
+            str(active_combatant.pk): 10,
+            str(later_combatant.pk): 4,
+        },
+    }
+
+
 def test_saving_throw_controls_and_combatant_bonus_data_are_rendered(client, combatant):
     combatant.character.dexterity_save_bonus = -2
     combatant.character.save(update_fields=["dexterity_save_bonus"])

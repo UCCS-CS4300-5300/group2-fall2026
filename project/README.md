@@ -71,6 +71,10 @@ Use Clear encounter to remove all combatants from the current encounter and
 reset initiative. Quests, NPCs, character records, and the current page's log
 are kept.
 
+To remove one combatant, use the small × button beside its type on the card.
+This removes only that combatant from the encounter; its character record and
+any other encounters using it remain.
+
 ## Editing combatants
 
 Click a combatant's name, armor class, or any saving-throw bonus to edit it.

@@ -10,6 +10,7 @@ import { setupInitiativeRoller } from "./initiative_roller.js";
 import { setupDefend } from "./defend.js";
 import { setupSavingThrowRoller } from "./saving_throws.js";
 import { setupClearEncounter } from "./clear_encounter.js";
+import { setupRemoveCombatant } from "./remove_combatant.js";
 
 setupDraggableCharacterCard() //Make character cards draggable
 setupSelectableCharacterCard() // Make character cards selectable
@@ -22,6 +23,7 @@ setupEditableHp() // Make character current HP editable
 setupEditableCharacterFields()
 setupInitiativeRoller()
 setupClearEncounter()
+setupRemoveCombatant()
 setupDefend()
 setupSavingThrowRoller()
 

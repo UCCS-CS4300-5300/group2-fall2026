@@ -150,6 +150,18 @@ export function setupDefend() {
         status.textContent = "";
         updateControls();
     });
+    board.addEventListener("combatant:removed", (event) => {
+        const id = event.detail.id;
+        selectedTargets.delete(id);
+        const item = [...targetList.children].find(
+            (target) => target.dataset.targetId === id,
+        );
+        item?.remove();
+        syncTargetOptions();
+        status.classList.remove("text-danger");
+        status.textContent = "";
+        updateControls();
+    });
     syncTargetOptions();
     updateControls();
 

@@ -29,8 +29,9 @@ export function setupClearEncounter() {
             }
 
             board.querySelectorAll(".combatant").forEach((card) => card.remove());
-            if (!document.getElementById("emptyMsg")) {
-                const emptyMessage = document.createElement("div");
+            let emptyMessage = document.getElementById("emptyMsg");
+            if (!emptyMessage) {
+                emptyMessage = document.createElement("div");
                 emptyMessage.id = "emptyMsg";
                 emptyMessage.className = "position-absolute top-50 start-50 translate-middle text-secondary text-center";
                 const title = document.createElement("p");
@@ -41,6 +42,8 @@ export function setupClearEncounter() {
                 instructions.textContent = 'Use "Add combatant" below to create players and enemies.';
                 emptyMessage.append(title, instructions);
                 board.append(emptyMessage);
+            } else {
+                emptyMessage.style.display = "";
             }
             board.dispatchEvent(new CustomEvent("combatants:cleared", { detail: result }));
         } catch (error) {
