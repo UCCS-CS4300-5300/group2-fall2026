@@ -3,7 +3,7 @@ from django.test import Client
 from django.urls import reverse
 from django.utils.html import escape
 
-from .models import Character, CharacterEncounter, Encounter, Quest
+from ..models import Character, CharacterEncounter, Encounter, Quest
 
 
 pytestmark = pytest.mark.django_db

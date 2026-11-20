@@ -6,7 +6,7 @@ from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_POST
 
-from .models import CharacterEncounter, Encounter
+from ..models import CharacterEncounter, Encounter
 
 
 def turn_state(encounter):

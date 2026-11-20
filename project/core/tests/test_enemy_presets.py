@@ -5,7 +5,7 @@ from urllib.error import URLError, HTTPError
 from io import BytesIO
 
 from django.urls import reverse
-from core.models import Character, Encounter, CharacterEncounter
+from ..models import Character, CharacterEncounter
 
 def mock_api_response(data):
     """Create a fake API response containing JSON data. """
@@ -22,7 +22,7 @@ def test_search_without_query(client):
     assert response.status_code == 200
 
 #Test 2: A successful search returns monster data
-@patch("core.views.urlopen")
+@patch("core.views.enemy.urlopen")
 def test_search_returns_monsters(mock_urlopen, client):
     search_results = { 
         "results": [
@@ -106,7 +106,7 @@ def test_search_with_whitespace_query(client):
     assert response.json() == {"monsters": []}
 
 # Test 7: Invalid JSON from the API - tests error handling 
-@patch("core.views.urlopen")
+@patch("core.views.enemy.urlopen")
 def test_invaid_api_json(mock_urlopen, client):
     mock_response = MagicMock()
     mock_response.__enter__.return_value = mock_response
@@ -121,7 +121,7 @@ def test_invaid_api_json(mock_urlopen, client):
 
 
 # Test 8 API returns HTTP error
-@patch("core.views.urlopen")
+@patch("core.views.enemy.urlopen")
 def test_api_http_error(mock_urlopen, client):
     mock_urlopen.side_effect = HTTPError(
         url="https://www.dnd5eapi.co/api/2014/monsters",
@@ -160,7 +160,7 @@ def test_monster_missing_optional_fields(mock_urlopen, client):
     assert response.json()["monsters"][0]["name"] == "Goblin"
 
 # Test 10: Result limit
-@patch("core.views.urlopen")
+@patch("core.views.enemy.urlopen")
 def test_search_returns_at_most_five_monsters(mock_urlopen, client):
     search_data = {
         "results": [
@@ -197,7 +197,7 @@ def mock_monster_api(monkeypatch, monster_data):
     def fake_urlopen(url, timeout=10):
         return BytesIO(json.dumps(monster_data).encode("utf-8"))
 
-    monkeypatch.setattr("core.views.urlopen", fake_urlopen)
+    monkeypatch.setattr("core.views.enemy.urlopen", fake_urlopen)
 
 # Test 1: Test Adult Black Dragon saving throws
 @pytest.mark.django_db
