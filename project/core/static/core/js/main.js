@@ -107,9 +107,9 @@ document.querySelectorAll(".chat-form").forEach((form) => {
             const result = await response.json();
             if (!response.ok) throw new Error(result.error || "The chat request failed.");
 
-            const assistantMessage = document.createElement("p");
+            const assistantMessage = document.createElement("div");
             assistantMessage.className = "chat-message assistant-message";
-            assistantMessage.textContent = result.reply;
+            assistantMessage.innerHTML = DOMPurify.sanitize(marked.parse(result.reply, { breaks: true }));
             messagesEl.append(assistantMessage);
             const history = chatHistories.get(form.dataset.chatType);
             history.push(
