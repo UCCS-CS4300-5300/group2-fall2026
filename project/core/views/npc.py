@@ -2,8 +2,8 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_http_methods
 
-from .forms import NPCForm
-from .models import NPC, Encounter
+from ..forms import NPCForm
+from ..models import NPC, Encounter
 
 
 @require_http_methods(["GET", "POST"])

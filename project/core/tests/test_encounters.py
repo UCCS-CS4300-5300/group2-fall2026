@@ -1,8 +1,7 @@
 import pytest
 from django.urls import reverse
 
-from .models import Character, CharacterEncounter, Encounter
-
+from ..models import Character, CharacterEncounter, Encounter
 
 pytestmark = pytest.mark.django_db
 
