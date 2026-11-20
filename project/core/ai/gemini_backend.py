@@ -43,6 +43,10 @@ DIMS = os.environ.get("EMBEDDING_DIMS", 768)
 
 client = None if not GEMINI_API_KEY else genai.Client(api_key=GEMINI_API_KEY)
 
+# Gemini uses model role, not assistane, and current Ollama implementation uses assistant
+# So this is just for cross-functionality currently
+ROLE_MAP = {"user": "user", "assistant": "model"}
+
 def parse_chat_request(chat_type, message, history):
     # Check that Gemini API Key is configured
     if not client:
@@ -50,7 +54,7 @@ def parse_chat_request(chat_type, message, history):
 
     # Only allow the MAX_CHAT_HISTORY_MESSAGES most recent history messages to be used
     start_i = max(0, len(history)-MAX_CHAT_HISTORY_MESSAGES)
-    history = history[start_i:]
+    history = history[start_i:] 
     
     # Verify chat params
     try:
@@ -62,7 +66,7 @@ def parse_chat_request(chat_type, message, history):
     rules_context = None
     if chat_type == "rules":
         try:
-            rules_context = get_rules_context(message)
+            rules_context = get_rules_context(message, history)
         except Exception as e:
             raise e
 
@@ -75,12 +79,15 @@ def parse_chat_request(chat_type, message, history):
     return reply
 
 # Rules context will just be the top n most relevant exceprts from 5e SRD
-def get_rules_context(message, size=5):
+def get_rules_context(message, history, size=5):
     # First, we load the chunks/vectors to find the correct passages
     try:
         chunks, matrix = get_data()
     except Exception as e:
         raise e
+
+    # Make an extra call to rewrite the query if there is a chat history
+    message = rewrite_query(message, history)
 
     # Next, embed the message using the same embedding model as our chunks
     try:
@@ -95,17 +102,46 @@ def get_rules_context(message, size=5):
 
     # Get the chunks to the corresponding rows
     context = [chunks[i] for i in top]
+    print(f"\n\n{message}\n\n")
     return context
 
-def get_ai_reply(message, system_prompt, history, rules_context):
+# Rewrites query to include message history for better RAG retrieval.
+def rewrite_query(message, history):
+    if not history:
+        return message  # nothing to resolve, skip the extra call
+
+    transcript = "\n".join(f"{ROLE_MAP[t['role']]}: {t['content']}" for t in history)
+
+    prompt = (
+        "Rewrite the user's latest message as a standalone question that "
+        "makes sense without the conversation. Resolve pronouns and "
+        "references using the history. If it's already standalone, return "
+        "it unchanged. Output only the rewritten question. "
+        'All questions are about D&D rules. Never specify "D&D", "Dungeons & Dragons", "tabletop", "game", or "RPG" in the output.\n\n'
+        f"Conversation:\n{transcript}\n\n"
+        f"Latest message: {message}"
+    )
+
+    try:
+        response = client.models.generate_content(
+            model=CHAT_MODEL,
+            contents=prompt,
+            config=types.GenerateContentConfig(temperature=0.0, max_output_tokens=100),
+        )
+    except Exception as e:
+        raise ChatError(f"Error when querying Gemini API: {str(e)}", status=503)
+
+    return response.text.strip() or message
+
+def get_ai_reply(message, system_prompt, history, rules_context, output_tokens=400, temp=1.0):
     try:
         response = client.models.generate_content(
             model = CHAT_MODEL,
             contents = build_contents(message, history, rules_context),
             config = types.GenerateContentConfig(
                 system_instruction = system_prompt,
-                max_output_tokens = 400,
-                temperature = 1.0,
+                max_output_tokens = output_tokens,
+                temperature = temp,
             ),
         )
     except Exception as e:
@@ -113,9 +149,6 @@ def get_ai_reply(message, system_prompt, history, rules_context):
     
     return response.text
 
-# Gemini uses model role, not assistane, and current Ollama implementation uses assistant
-# So this is just for cross-functionality currently
-ROLE_MAP = {"user": "user", "assistant": "model"}
 def build_contents(message, history, rules_context):
     recent = [h for h in history if h["role"] in ROLE_MAP] # Gemini only accepts "user" and "model" roles
     
@@ -137,7 +170,7 @@ def build_contents(message, history, rules_context):
             f"Rules excerpts:\n{rules_context}\n\n"
             f"Question: {message}"
         )
-        print(rules_context)
+        print([f"{i}\n\n" for i in rules_context])
     else:
         final_text = message
 
