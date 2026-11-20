@@ -211,6 +211,18 @@ h5,
   transition: width 0.3s, background-color 0.3s;
 }
 
+.btn-clear-encounter {
+  border-color: var(--blood);
+  color: var(--blood);
+}
+
+.btn-clear-encounter:hover,
+.btn-clear-encounter:focus-visible {
+  border-color: var(--blood);
+  background-color: var(--blood);
+  color: var(--bone);
+}
+
 .editable-character-field {
   border: 0;
   padding: 0;
