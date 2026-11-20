@@ -1,5 +1,4 @@
 from django.urls import path
-from . import turns
 from . import views
 
 app_name="core"
@@ -9,8 +8,8 @@ urlpatterns=[
     path("encounter/",views.add_encounter,name="add_encounter"),
     path("encounter/<int:encounter_id>/enemies/import/", views.import_enemy, name="import_enemy"),
     path("encounter/<int:encounter_id>/combatants/", views.add_combatant, name="add_combatant"),
-    path("encounter/<int:encounter_id>/initiative/", turns.roll_initiative, name="roll_initiative"),
-    path("encounter/<int:encounter_id>/next-turn/", turns.next_turn, name="next_turn"),
+    path("encounter/<int:encounter_id>/initiative/", views.roll_initiative, name="roll_initiative"),
+    path("encounter/<int:encounter_id>/next-turn/", views.next_turn, name="next_turn"),
     path("enemies/", views.search_enemy, name="search_enemy"),
     path("chat/", views.chat, name="chat"),
     path("combatants/<int:entry_id>/", views.move_combatant, name="move_combatant"),

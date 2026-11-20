@@ -8,7 +8,7 @@ from django.template.loader import render_to_string
 
 from ..forms import EncounterForm
 from ..models import CharacterEncounter, Encounter, Quest
-from ..turns import turn_state
+from .turns import turn_state
 
 @require_http_methods(["GET", "DELETE", "PATCH"])
 def encounter_detail(request, encounter_id):
