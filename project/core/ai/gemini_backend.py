@@ -58,44 +58,29 @@ def parse_chat_request(chat_type, message, history):
     history = history[start_i:] 
     
     # Verify chat params
-    try:
-        verify_chat_parameters(chat_type, message, history, CHAT_SYSTEM_PROMPTS, MAX_CHAT_MESSAGE_LENGTH, MAX_CHAT_HISTORY_MESSAGES)
-    except ChatError as e:
-        raise e
+    verify_chat_parameters(chat_type, message, history, CHAT_SYSTEM_PROMPTS, MAX_CHAT_MESSAGE_LENGTH, MAX_CHAT_HISTORY_MESSAGES)
 
     # Get rules context for this message
     rules_context = None
     if chat_type == "rules":
-        try:
-            rules_context = get_rules_context(message, history)
-        except Exception as e:
-            raise e
+        rules_context = get_rules_context(message, history)
 
     # Get AI reply
-    try:
-        reply = get_ai_reply(message, CHAT_SYSTEM_PROMPTS[chat_type], history, rules_context)
-    except ChatError as e:
-        raise e
+    reply = get_ai_reply(message, CHAT_SYSTEM_PROMPTS[chat_type], history, rules_context)
 
     return reply
 
 # Rules context will just be the top n most relevant exceprts from 5e SRD
 def get_rules_context(message, history, size=5):
     # First, we load the chunks/vectors to find the correct passages
-    try:
-        chunks, matrix = get_data()
-    except Exception as e:
-        raise e
+    chunks, matrix = get_data()
 
     # Make an extra call to rewrite the query if there is a chat history
     message = rewrite_query(message, history)
 
     # Next, embed the message using the same embedding model as our chunks
-    try:
-        # Our question as a normalized vector
-        q_vec = get_question_vector(message)
-    except Exception as e: 
-        raise e
+    # Our question as a normalized vector
+    q_vec = get_question_vector(message)
 
     # Now the MAGIC!!!
     scores = matrix @ q_vec # Dot products to find cosine similarities

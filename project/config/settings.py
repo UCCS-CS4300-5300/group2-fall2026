@@ -43,4 +43,4 @@ DEFAULT_AUTO_FIELD="django.db.models.BigAutoField"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 SECRET_KEY = os.environ.get("SECRET_KEY", "course-starter-development-key")
 DEBUG = os.environ.get("DEBUG", "True") == "True"
-AI_BACKEND = "gemini"
+AI_BACKEND = "ollama"
