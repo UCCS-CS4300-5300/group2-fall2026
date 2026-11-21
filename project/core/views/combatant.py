@@ -2,13 +2,15 @@ import json
 import math
 
 from django.db import transaction
-from django.http import HttpResponse, JsonResponse
+from django.db.models import F
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_http_methods, require_POST
 
 from ..forms import CharacterForm
 from ..models import CharacterEncounter, Encounter
+from .turns import turn_state
 
 # View to add combatant to encounter.
 @require_POST
@@ -31,6 +33,62 @@ def add_combatant(request, encounter_id):
     # Get HTML response for JavaScript
     html = render_to_string("core/encounter_combatant_card.html", {"entry":entry})
     return HttpResponse(html)
+
+
+@require_POST
+@transaction.atomic
+def clear_combatants(request, encounter_id):
+    updated = Encounter.objects.filter(pk=encounter_id).update(
+        turn_index=0,
+        turn_version=F("turn_version") + 1,
+    )
+    if not updated:
+        raise Http404
+
+    CharacterEncounter.objects.filter(encounter_id=encounter_id).delete()
+    encounter = Encounter.objects.get(pk=encounter_id)
+    return JsonResponse(turn_state(encounter))
+
+
+@require_http_methods(["DELETE"])
+@transaction.atomic
+def remove_combatant(request, entry_id):
+    initial_entry = get_object_or_404(
+        CharacterEncounter.objects.only("encounter_id"), pk=entry_id
+    )
+    encounter = get_object_or_404(
+        Encounter.objects.select_for_update(), pk=initial_entry.encounter_id
+    )
+    entry = get_object_or_404(
+        CharacterEncounter, pk=entry_id, encounter=encounter
+    )
+    ordered_cards = list(
+        CharacterEncounter.objects.filter(encounter=encounter)
+        .order_by("-initiative", "pk")
+        .values_list("pk", "initiative")
+    )
+    initiative_order = [
+        card_id for card_id, initiative in ordered_cards if initiative != 0
+    ]
+    if entry_id in initiative_order:
+        completed_rounds, current_position = divmod(
+            encounter.turn_index, len(initiative_order)
+        )
+        removed_position = initiative_order.index(entry_id)
+        if removed_position < current_position:
+            current_position -= 1
+        remaining_count = len(initiative_order) - 1
+        encounter.turn_index = (
+            completed_rounds * remaining_count + current_position
+            if remaining_count
+            else 0
+        )
+
+    encounter.turn_version += 1
+    encounter.save(update_fields=["turn_index", "turn_version"])
+    entry.delete()
+    return JsonResponse(turn_state(encounter))
+
 
 # View to move the location of a combatant/CharacterEncounter so the page "remembers" their last location
 @require_http_methods(["PATCH"])
