@@ -84,8 +84,9 @@
                     </button>
                     <span id="hint" class="small text-warning ms-2" role="status"></span>
                     <button
-                        class="btn btn-sm btn-outline-secondary ms-auto"
+                        class="btn btn-sm btn-clear-encounter ms-auto"
                         id="resetBtn"
+                        data-url="{% url 'core:clear_combatants' encounter.id %}"
                     >
                         Clear encounter
                     </button>

@@ -37,6 +37,11 @@ def update_character_details(request, entry_id):
             return JsonResponse(
                 {"error": "Name must contain 1 to 120 characters."}, status=400
             )
+    elif field == "armor_class":
+        if type(value) is not int or not 1 <= value < 2**31:
+            return JsonResponse(
+                {"error": "Armor class must be a positive whole number."}, status=400
+            )
     elif field in save_fields:
         if type(value) is not int or not -(2**31) <= value < 2**31:
             return JsonResponse(

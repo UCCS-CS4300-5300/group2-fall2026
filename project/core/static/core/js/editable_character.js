@@ -6,6 +6,7 @@ const SAVE_FIELDS = new Set([
     "wisdom_save_bonus",
     "charisma_save_bonus",
 ]);
+const INTEGER_FIELDS = new Set([...SAVE_FIELDS, "armor_class"]);
 
 export function setupEditableCharacterFields() {
     const board = document.getElementById("board");
@@ -20,7 +21,7 @@ export function setupEditableCharacterFields() {
 
 function beginEdit(button) {
     const field = button.dataset.characterField;
-    if (field !== "name" && !SAVE_FIELDS.has(field)) return;
+    if (field !== "name" && !INTEGER_FIELDS.has(field)) return;
 
     const card = button.closest(".combatant");
     const status = card.querySelector(".character-edit-status");
@@ -36,6 +37,7 @@ function beginEdit(button) {
         input.maxLength = 120;
     } else {
         input.step = "1";
+        if (field === "armor_class") input.min = "1";
     }
 
     button.replaceWith(input);
@@ -75,7 +77,17 @@ async function saveCharacterField(input, button, card, status, field, onFailure,
         return;
     }
     if (field !== "name" && (!Number.isSafeInteger(value) || input.value.trim() === "")) {
-        showEditError(status, "Saving throw bonus must be a whole number.");
+        showEditError(
+            status,
+            field === "armor_class"
+                ? "Armor class must be a positive whole number."
+                : "Saving throw bonus must be a whole number.",
+        );
+        input.focus();
+        return;
+    }
+    if (field === "armor_class" && value < 1) {
+        showEditError(status, "Armor class must be a positive whole number.");
         input.focus();
         return;
     }
@@ -111,6 +123,8 @@ async function saveCharacterField(input, button, card, status, field, onFailure,
         display.textContent = savedValue;
         if (field === "name") {
             button.setAttribute("aria-label", `Edit combatant name: ${savedValue}`);
+        } else if (field === "armor_class") {
+            card.dataset.armorClass = savedValue;
         } else {
             const ability = field.replace("_save_bonus", "");
             card.dataset[`${ability}SaveBonus`] = savedValue;

@@ -107,6 +107,34 @@ def test_character_name_update_trims_and_persists(client, combatant):
     assert combatant.character.name == "Hobgoblin Captain"
 
 
+@pytest.mark.django_db
+def test_character_armor_class_update_persists(client, combatant):
+    response = client.patch(
+        reverse("core:update_character_details", args=[combatant.pk]),
+        {"armor_class": 18},
+        content_type="application/json",
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {"armor_class": 18}
+    combatant.character.refresh_from_db()
+    assert combatant.character.armor_class == 18
+
+
+@pytest.mark.parametrize("armor_class", [0, -1, 1.5, True, "15", 2**31])
+@pytest.mark.django_db
+def test_invalid_armor_class_update_does_not_change_character(client, combatant, armor_class):
+    response = client.patch(
+        reverse("core:update_character_details", args=[combatant.pk]),
+        {"armor_class": armor_class},
+        content_type="application/json",
+    )
+
+    assert response.status_code == 400
+    combatant.character.refresh_from_db()
+    assert combatant.character.armor_class == 13
+
+
 @pytest.mark.parametrize(
     "field",
     [
@@ -141,7 +169,6 @@ def test_character_saving_throw_update_persists(client, combatant, field):
         {"strength_save_bonus": True},
         {"strength_save_bonus": "2"},
         {"strength_save_bonus": 2**31},
-        {"armor_class": 15},
         {"name": "New name", "strength_save_bonus": 2},
     ],
 )
@@ -166,5 +193,7 @@ def test_encounter_card_renders_clickable_character_fields(client, combatant):
     assert response.status_code == 200
     assert b'data-character-field="name"' in response.content
     assert b'data-character-field="strength_save_bonus"' in response.content
+    assert b'data-character-field="armor_class"' in response.content
+    assert b'data-armor-class="13"' in response.content
     assert b'data-update-character-url="/character/' in response.content
     assert b'aria-label="Edit combatant name: Goblin"' in response.content
