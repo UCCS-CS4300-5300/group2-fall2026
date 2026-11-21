@@ -7,6 +7,11 @@ const ABILITIES = {
     charisma: "CHA",
 };
 
+const EXCLUSIVE_TRAIT_GROUPS = [
+    ["resistant", "immune", "vulnerable"],
+    ["advantage", "disadvantage"],
+];
+
 export function setupDefend() {
     const form = document.getElementById("defendForm");
     const board = document.getElementById("board");
@@ -69,12 +74,14 @@ export function setupDefend() {
         ac.textContent = `AC ${card.dataset.armorClass}`;
         const traits = document.createElement("div");
         traits.className = "defend-target-traits";
+        const traitCheckboxes = new Map();
 
         for (const [key, label] of [
-            ["resistant", "Is Resistant"],
-            ["immune", "Is Immune"],
-            ["vulnerable", "Is Vulnerable"],
-            ["advantage", "Has Advantage"],
+            ["resistant", "Resistant"],
+            ["immune", "Immune"],
+            ["vulnerable", "Vulnerable"],
+            ["advantage", "Advantage"],
+            ["disadvantage", "Disadvantage"],
         ]) {
             const wrapper = document.createElement("div");
             wrapper.className = "form-check form-check-inline";
@@ -83,6 +90,11 @@ export function setupDefend() {
             checkbox.className = "form-check-input";
             checkbox.id = `defend-${id}-${key}`;
             checkbox.dataset.trait = key;
+            traitCheckboxes.set(key, checkbox);
+            checkbox.addEventListener("change", () => {
+                if (!checkbox.checked) return;
+                enforceExclusiveTraitSelection(key, traitCheckboxes);
+            });
             const labelElement = document.createElement("label");
             labelElement.className = "form-check-label small";
             labelElement.htmlFor = checkbox.id;
@@ -93,8 +105,8 @@ export function setupDefend() {
 
         const remove = document.createElement("button");
         remove.type = "button";
-        remove.className = "btn btn-sm btn-outline-secondary";
-        remove.textContent = "Remove";
+        remove.className = "btn btn-sm btn-outline-danger";
+        remove.textContent = "×";
         remove.setAttribute("aria-label", `Remove ${name.textContent}`);
         remove.addEventListener("click", () => {
             selectedTargets.delete(id);
@@ -202,30 +214,41 @@ export function setupDefend() {
                 );
                 let amount = damage;
                 let detail = "Applied";
+                let saveRolls = [];
+                let saveRoll = null;
+                let bonus = 0;
 
-                if (damage > 0 && mode === "attack" && attackRoll <= Number(card.dataset.armorClass)) {
+                if (damage >= 0 && mode === "save") {
+                    const save = rollSavingThrowD20(
+                        traits.has("advantage"),
+                        traits.has("disadvantage"),
+                    );
+                    saveRolls = save.rolls;
+                    saveRoll = save.selected;
+                    bonus = Number(card.dataset[`${ability}SaveBonus`]);
+                }
+
+                const outcome = resolveDefendOutcome({
+                    damage,
+                    mode,
+                    attackRoll,
+                    armorClass: Number(card.dataset.armorClass),
+                    saveTotal: saveRoll === null ? null : saveRoll + bonus,
+                    dc,
+                    halfOnSave,
+                    traits,
+                });
+                if (outcome.missed) {
                     outcomes.push(`${card.querySelector(".name").textContent.trim()}: Miss (AC ${card.dataset.armorClass}).`);
                     continue;
                 }
 
-                if (damage >= 0 && mode === "save") {
-                    const saveRolls = [rollD20()];
-                    if (traits.has("advantage")) saveRolls.push(rollD20());
-                    const saveRoll = Math.max(...saveRolls);
-                    const bonus = Number(card.dataset[`${ability}SaveBonus`]);
-                    const saved = saveRoll + bonus >= dc;
+                amount = outcome.amount;
+                if (outcome.saved !== null) {
                     const rollSummary = saveRolls.length > 1
                         ? `${saveRolls.join(" / ")}; used ${saveRoll}`
                         : String(saveRoll);
-                    detail = `${saved ? "Saved" : "Failed save"} (${ABILITIES[ability]} ${rollSummary} ${bonus >= 0 ? "+" : ""}${bonus} vs DC ${dc})`;
-                    if (saved) amount = halfOnSave ? Math.floor(amount / 2) : 0;
-                }
-
-                if (amount > 0) {
-                    if (traits.has("immune")) amount = 0;
-                    else if (traits.has("resistant") !== traits.has("vulnerable")) {
-                        amount = traits.has("resistant") ? Math.max(1, Math.floor(amount / 2)) : amount * 2;
-                    }
+                    detail = `${outcome.saved ? "Saved" : "Failed save"} (${ABILITIES[ability]} ${rollSummary} ${bonus >= 0 ? "+" : ""}${bonus} vs DC ${dc})`;
                 }
 
                 const hpField = card.querySelector(".hp-field");
@@ -272,6 +295,59 @@ export function setupDefend() {
 
 function rollD20() {
     return Math.floor(Math.random() * 20) + 1;
+}
+
+export function enforceExclusiveTraitSelection(selectedTrait, traitCheckboxes) {
+    const group = EXCLUSIVE_TRAIT_GROUPS.find((traits) => traits.includes(selectedTrait));
+    if (!group) return;
+    for (const trait of group) {
+        if (trait !== selectedTrait) {
+            const checkbox = traitCheckboxes.get(trait);
+            if (checkbox) checkbox.checked = false;
+        }
+    }
+}
+
+export function rollSavingThrowD20(hasAdvantage, hasDisadvantage) {
+    const rolls = [rollD20()];
+    if (hasAdvantage !== hasDisadvantage) rolls.push(rollD20());
+    const selected = hasAdvantage
+        ? Math.max(...rolls)
+        : hasDisadvantage
+            ? Math.min(...rolls)
+            : rolls[0];
+    return { rolls, selected };
+}
+
+export function resolveDefendOutcome({
+    damage,
+    mode,
+    attackRoll,
+    armorClass,
+    saveTotal,
+    dc,
+    halfOnSave,
+    traits,
+}) {
+    if (damage > 0 && mode === "attack" && attackRoll <= armorClass) {
+        return { missed: true, amount: 0, saved: null };
+    }
+
+    let amount = damage;
+    let saved = null;
+    if (damage >= 0 && mode === "save") {
+        saved = saveTotal >= dc;
+        if (saved) amount = halfOnSave ? Math.floor(amount / 2) : 0;
+    }
+
+    if (amount > 0) {
+        if (traits.has("immune")) amount = 0;
+        else if (traits.has("resistant") !== traits.has("vulnerable")) {
+            amount = traits.has("resistant") ? Math.max(1, Math.floor(amount / 2)) : amount * 2;
+        }
+    }
+
+    return { missed: false, amount, saved };
 }
 
 function updateHpDisplay(card, remainingHp) {
