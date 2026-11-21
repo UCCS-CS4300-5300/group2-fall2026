@@ -71,7 +71,7 @@ def _assert_chat_sends_model_prompt_history_and_pdf(client, chat_type, expected_
     {"chat_type": "dm", "message": "Hi", "history": json.dumps([{"role": [], "content": "invalid"}])},
     {"chat_type": "dm", "message": "Hi", "history": json.dumps([{"role": "user", "content": ""}])},
 ])
-def test_chat_rejects_invalid_input_without_calling_ollama(client, data):
+def test_chat_rejects_invalid_input_without_calling_ollama(client, data, ollama_backend_active):
     with patch(URL_OPEN_REF) as urlopen:
         response = client.post(reverse("core:chat"), data)
 
