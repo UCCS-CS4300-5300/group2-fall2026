@@ -80,7 +80,7 @@ def test_chat_rejects_invalid_input_without_calling_ollama(client, data, ollama_
     urlopen.assert_not_called()
 
 
-def test_chat_rejects_blank_message_with_clear_error(client):
+def test_chat_rejects_blank_message_with_clear_error(client, ollama_backend_active):
     response = client.post(reverse("core:chat"), {
         "chat_type": "rules",
         "message": " ",
@@ -91,7 +91,7 @@ def test_chat_rejects_blank_message_with_clear_error(client):
     assert response.json() == {"error": "Enter a message before sending."}
 
 
-def test_chat_rejects_overlong_message_with_clear_error(client):
+def test_chat_rejects_overlong_message_with_clear_error(client, ollama_backend_active):
     response = client.post(reverse("core:chat"), {
         "chat_type": "rules",
         "message": "x" * 4001,
@@ -186,7 +186,7 @@ def test_chat_forms_include_chat_type_for_post_submission(client, encounter):
 
 
 @pytest.mark.django_db
-def test_chat_requires_csrf_token(encounter):
+def test_chat_requires_csrf_token(encounter, ollama_backend_active):
     from django.test import Client
 
     client = Client(enforce_csrf_checks=True)
