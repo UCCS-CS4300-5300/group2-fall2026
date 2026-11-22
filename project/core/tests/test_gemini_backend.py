@@ -187,7 +187,7 @@ class TestGetQuestionVector:
 @pytest.fixture
 def data_dir(tmp_path, monkeypatch):
     vectors = np.array([[3.0, 4.0], [0.0, 2.0]], dtype=np.float64)
-    np.save(tmp_path / "embeddings_partial.npy", vectors)
+    np.save(tmp_path / "embeddings.npy", vectors)
     chunks = ["chunk about fire", "chunk about ice"]
     (tmp_path / "chunks.json").write_text(json.dumps(chunks), encoding="utf-8")
     monkeypatch.setattr(svc, "DATA_DIR", tmp_path)
