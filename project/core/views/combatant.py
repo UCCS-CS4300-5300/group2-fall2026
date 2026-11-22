@@ -144,22 +144,72 @@ Updates character's initiative for current encounter
 
 EXPECTS:    {"initiative": int}
 RETURNS:    {"error": str} if response code == 400
-            {"initiative": int} if response code == 200
+            Saved initiative and current turn state if response code == 200
 '''
 @require_http_methods(["PATCH"])
 def update_initiative(request, entry_id):
-    # Get character-encounter to update its initiative
-    combatant = get_object_or_404(CharacterEncounter, pk=entry_id)
     try:
         data = json.loads(request.body)
+        if not isinstance(data, dict):
+            raise TypeError
         initiative = data["initiative"]
-        if math.floor(initiative) != initiative: raise TypeError # Only numeric values representing integers should be allowed
+        if type(initiative) not in (int, float):
+            raise TypeError
+        if isinstance(initiative, float) and (
+            not math.isfinite(initiative) or not initiative.is_integer()
+        ):
+            raise ValueError
+        if initiative < -(2 ** 31):
+            raise ValueError
     except (ValueError, TypeError, KeyError):
         return JsonResponse({"error": "initiative field must exist and be a valid integer"}, status=400)
 
-    # Initiative can only max out at 20 necessarily
-    initiative = min(initiative, 20)
-    combatant.initiative = initiative
-    combatant.save(update_fields=["initiative"])
-    return JsonResponse({"initiative": combatant.initiative}, status=200)
+    expected = data.get("turn_version")
+    if "turn_version" in data and (type(expected) is not int or expected < 0):
+        return JsonResponse({"error": "A nonnegative turn version is required."}, status=400)
+
+    initiative = min(int(initiative), 20)
+    initial_entry = get_object_or_404(
+        CharacterEncounter.objects.only("encounter_id"), pk=entry_id
+    )
+    with transaction.atomic():
+        # Take the encounter's write lock before reading the current turn.
+        updated = Encounter.objects.filter(pk=initial_entry.encounter_id).update(
+            turn_version=F("turn_version")
+        )
+        if not updated:
+            raise Http404
+        encounter = Encounter.objects.get(pk=initial_entry.encounter_id)
+        combatant = get_object_or_404(CharacterEncounter, pk=entry_id, encounter=encounter)
+        before = turn_state(encounter)
+        if expected is not None and expected != encounter.turn_version:
+            return JsonResponse({
+                **before,
+                "initiative": combatant.initiative,
+                "error": "The turn changed. Check the current order and try again.",
+            }, status=409)
+
+        if initiative != combatant.initiative:
+            combatant.initiative = initiative
+            combatant.save(update_fields=["initiative"])
+            order = list(
+                encounter.character_encounters.exclude(initiative=0)
+                .order_by("-initiative", "pk").values_list("pk", flat=True)
+            )
+            if order and before["active_id"] is not None:
+                if before["active_id"] in order:
+                    position = order.index(before["active_id"])
+                else:
+                    # Unsetting the current combatant moves to the next one.
+                    previous_order = [
+                        int(card_id) for card_id, score in before["rolls"].items() if score != 0
+                    ]
+                    position = previous_order.index(before["active_id"])
+                encounter.turn_index = (before["round"] - 1) * len(order) + position
+            else:
+                encounter.turn_index = 0
+            encounter.turn_version += 1
+            encounter.save(update_fields=["turn_index", "turn_version"])
+
+        return JsonResponse({**turn_state(encounter), "initiative": combatant.initiative})
 

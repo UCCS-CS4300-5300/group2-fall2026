@@ -106,6 +106,56 @@ h5,
   padding: 0.75rem;
 }
 
+.initiative-panel {
+  padding: 0.75rem;
+  border-bottom: 1px solid #3a3944;
+  max-height: 42%;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.initiative-panel summary {
+  color: var(--brass);
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.initiative-order {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.initiative-entry {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem;
+  border-left: 3px solid transparent;
+}
+
+.initiative-entry[aria-current="true"] {
+  border-color: #8ed1bd;
+  background: var(--ink);
+}
+
+.initiative-entry label {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.initiative-note {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--bone);
+}
+
+.initiative-score {
+  width: 4.5rem;
+  flex-shrink: 0;
+}
+
 .chat-messages {
   max-height: 45vh;
   overflow-y: auto;
@@ -147,6 +197,15 @@ h5,
     height: 40%;
     border-left: 0;
     border-top: 1px solid #3a3944;
+    overflow-y: auto;
+  }
+  .initiative-panel {
+    max-height: none;
+    overflow-y: visible;
+  }
+  .side-body {
+    flex: none;
+    overflow-y: visible;
   }
 }
 

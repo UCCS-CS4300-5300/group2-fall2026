@@ -273,6 +273,7 @@ export function setupPreset() {
 
             const cardHtml = await response.text();
             document.getElementById("board").insertAdjacentHTML("beforeend", cardHtml);
+            document.getElementById("board").dispatchEvent(new CustomEvent("combatant:added"));
 
             const emptyMsg = document.getElementById("emptyMsg");
             if (emptyMsg) emptyMsg.style.display = "none";

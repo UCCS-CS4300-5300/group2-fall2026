@@ -132,6 +132,7 @@ async function saveCharacterField(input, button, card, status, field, onFailure,
         }
         input.replaceWith(button);
         status.hidden = true;
+        card.closest("#board").dispatchEvent(new CustomEvent("character:updated"));
     } catch (error) {
         input.disabled = false;
         showEditError(status, error.message || "Could not save changes. Try again.");

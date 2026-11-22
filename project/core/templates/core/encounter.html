@@ -104,6 +104,12 @@
                 title="Drag to resize panels, or use the Left and Right arrow keys."
             ></div>
             <aside class="side" id="toolsPanel">
+                <details class="initiative-panel" open>
+                    <summary>Initiative order</summary>
+                    <p class="small text-secondary mt-2 mb-2">Edit a score, then press Enter or click away to save. Blank or 0 keeps a creature out of the turn order.</p>
+                    <p id="initiativeEmpty" class="small text-secondary">Add combatants to see their order.</p>
+                    <ol id="initiativeOrder" class="initiative-order" aria-label="Initiative order"></ol>
+                </details>
                 <ul class="nav nav-tabs px-2 pt-2" role="tablist">
                     <li class="nav-item">
                         <button
@@ -371,7 +377,8 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button class="btn btn-brass">Add to encounter</button>
+                        <p id="addCombatantError" class="small text-danger me-auto mb-0" role="alert"></p>
+                        <button type="submit" class="btn btn-brass">Add to encounter</button>
                     </div>
                 </form>
             </div>

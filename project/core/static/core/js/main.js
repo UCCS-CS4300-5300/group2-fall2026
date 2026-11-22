@@ -31,40 +31,35 @@ setupSavingThrowRoller()
 const addForm = document.getElementById("addForm");
 const addModalEl = document.getElementById("addModal")
 addForm.addEventListener("submit", async (e) => {
-    e.preventDefault() //Prevent default submission behavior since this function handles the POST request
+    e.preventDefault();
+    const submitButton = addForm.querySelector('button[type="submit"]');
+    if (submitButton.disabled) return;
+    submitButton.disabled = true;
+    const error = document.getElementById("addCombatantError");
+    error.textContent = "";
 
-    // 
-    const submitButton = addForm.querySelector (
-        'button[type="submit"]'
-    )
+    try {
+        const res = await fetch(addForm.action || window.location.href, {
+            method: "POST",
+            body: new FormData(addForm),
+            headers: { "X-Requested-With": "XMLHttpRequest" },
+        });
+        if (!res.ok) throw new Error("Could not add combatant. Check the fields and try again.");
 
-    // 
-    if (submitButton) {
-        submitButton.disabled = true;
+        const html = await res.text();
+        const board = document.getElementById("board");
+        board.insertAdjacentHTML("beforeend", html);
+        board.dispatchEvent(new CustomEvent("combatant:added"));
+        const emptyMsgEl = document.getElementById("emptyMsg");
+        if (emptyMsgEl) emptyMsgEl.style.display = "none";
+
+        addForm.reset();
+        bootstrap.Modal.getOrCreateInstance(addModalEl).hide();
+    } catch (failure) {
+        error.textContent = failure.message || "Could not add combatant. Try again.";
+    } finally {
+        submitButton.disabled = false;
     }
-
-    //Send POST request to add a new combatant, and render the card on screen.
-    const res = await fetch(addForm.action || window.location.href, {
-        method: "POST",
-        body: new FormData(addForm), // includes the csrfmiddlewaretoken field
-        headers: { "X-Requested-With": "XMLHttpRequest" },
-    });
-
-    //Check if response is okay
-    if (!res.ok) {
-        //TODO: Add error checking!!!
-        return
-    }
-
-    //Add returned HTML fragment to page
-    const html = await res.text()
-    document.getElementById("board").insertAdjacentHTML("beforeend", html)
-    
-    const emptyMsgEl = document.getElementById("emptyMsg");
-    if (emptyMsgEl) emptyMsgEl.style.display = "none";
-
-    addForm.reset()
-    bootstrap.Modal.getOrCreateInstance(addModalEl).hide();
 })
 
 const chatHistories = new Map();
