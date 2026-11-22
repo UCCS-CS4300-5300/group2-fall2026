@@ -125,7 +125,14 @@ h5,
 
 .assistant-message {
   border-left-color: var(--moss);
-  white-space: pre-wrap;
+}
+
+.assistant-message > :first-child { 
+    margin-top: 0;
+}
+
+.assistant-message > :last-child {
+    margin-bottom: 0;
 }
 
 @media (max-width: 800px) {

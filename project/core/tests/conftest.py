@@ -1,6 +1,8 @@
 import pytest
 
 from ..models import Character, CharacterEncounter, Encounter
+from unittest.mock import patch
+from ..ai import ollama_backend, gemini_backend
 
 # Global fixtures
 @pytest.fixture
@@ -19,3 +21,13 @@ def combatant(encounter):
         x_pos=50,
         y_pos=60,
     )
+
+@pytest.fixture
+def ollama_backend_active():
+    with patch("core.views.ai.parse_chat_request", ollama_backend.parse_chat_request):
+        yield
+
+@pytest.fixture
+def gemini_backend_active():
+    with patch("core.views.ai.parse_chat_request", gemini_backend.parse_chat_request):
+        yield
