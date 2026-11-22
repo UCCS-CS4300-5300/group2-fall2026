@@ -1,4 +1,5 @@
 from .ai import *
+from .attacks import *
 from .combatant import *
 from .dashboard import *
 from .encounter import *
