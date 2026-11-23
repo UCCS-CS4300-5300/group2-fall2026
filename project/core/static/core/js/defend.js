@@ -250,10 +250,10 @@ export function setupDefend() {
                     [...item.querySelectorAll("[data-trait]:checked")].map((checkbox) => checkbox.dataset.trait),
                 );
                 let amount = damage;
-                let detail = "Applied";
                 let saveRolls = [];
                 let saveRoll = null;
                 let bonus = 0;
+                let saveTotal = null;
 
                 if (damage >= 0 && mode === "save") {
                     const save = rollSavingThrowD20(
@@ -263,6 +263,7 @@ export function setupDefend() {
                     saveRolls = save.rolls;
                     saveRoll = save.selected;
                     bonus = Number(card.dataset[`${ability}SaveBonus`]);
+                    saveTotal = saveRoll + bonus;
                 }
 
                 const outcome = resolveDefendOutcome({
@@ -270,24 +271,27 @@ export function setupDefend() {
                     mode,
                     attackRoll,
                     armorClass: Number(card.dataset.armorClass),
-                    saveTotal: saveRoll === null ? null : saveRoll + bonus,
+                    saveTotal,
                     dc,
                     halfOnSave,
                     traits,
                 });
                 if (outcome.missed) {
-                    outcomes.push(`${card.querySelector(".name").textContent.trim()}: Miss (AC ${card.dataset.armorClass}).`);
+                    const armorClass = Number(card.dataset.armorClass);
+                    outcomes.push({
+                        text: formatDefendOutcome({
+                            name: card.querySelector(".name").textContent.trim(),
+                            mode: "attack",
+                            attackRoll,
+                            armorClass,
+                            missed: true,
+                        }),
+                        kind: "gold",
+                    });
                     continue;
                 }
 
                 amount = outcome.amount;
-                if (outcome.saved !== null) {
-                    const rollSummary = saveRolls.length > 1
-                        ? `${saveRolls.join(" / ")}; used ${saveRoll}`
-                        : String(saveRoll);
-                    detail = `${outcome.saved ? "Saved" : "Failed save"} (${ABILITIES[ability]} ${rollSummary} ${bonus >= 0 ? "+" : ""}${bonus} vs DC ${dc})`;
-                }
-
                 const hpField = card.querySelector(".hp-field");
                 const currentHp = Number(hpField.dataset.remaining);
                 const maxHp = Number(hpField.dataset.max);
@@ -308,15 +312,47 @@ export function setupDefend() {
                         updateHpDisplay(card, result.remaining_hp);
                     } catch (error) {
                         hadError = true;
-                        outcomes.push(`${card.querySelector(".name").textContent.trim()}: Could not update HP (${error.message || "request failed"}).`);
+                        outcomes.push({
+                            text: `${card.querySelector(".name").textContent.trim()}: Could not update HP (${error.message || "request failed"}).`,
+                            kind: "red",
+                        });
                         continue;
                     }
                 }
 
-                const effect = amount < 0 ? `Healed ${Math.abs(amount)}` : `Took ${amount} damage`;
-                outcomes.push(`${card.querySelector(".name").textContent.trim()}: ${detail}; ${effect}.`);
+                let kind = "red";
+                const creatureName = card.querySelector(".name").textContent.trim();
+                let text = formatDefendOutcome({
+                    name: creatureName,
+                    amount,
+                    mode,
+                    attackRoll,
+                    armorClass: Number(card.dataset.armorClass),
+                    saved: outcome.saved,
+                    saveTotal,
+                    dc,
+                    ability,
+                });
+                if (amount < 0) {
+                    kind = "blue";
+                } else if (mode === "attack") {
+                    kind = "red";
+                } else {
+                    kind = outcome.saved ? "gold" : "red";
+                }
+                outcomes.push({
+                    text,
+                    kind,
+                });
             }
-            status.textContent = outcomes.join(" ");
+            status.replaceChildren();
+            outcomes.forEach((outcome, index) => {
+                if (index > 0) status.append(document.createTextNode(" "));
+                const outcomeElement = document.createElement("strong");
+                outcomeElement.className = `defend-outcome-${outcome.kind}`;
+                outcomeElement.textContent = outcome.text;
+                status.append(outcomeElement);
+            });
             if (hadError) status.classList.add("text-danger");
         } catch (error) {
             status.textContent = error.message || "Could not apply the effect to all targets.";
@@ -328,6 +364,35 @@ export function setupDefend() {
             applyButton.disabled = selectedTargets.size === 0;
         }
     });
+}
+
+export function formatDefendOutcome({
+    name,
+    amount = 0,
+    mode,
+    attackRoll,
+    armorClass,
+    missed = false,
+    saved = null,
+    saveTotal = null,
+    dc,
+    ability,
+}) {
+    if (amount < 0) return `${name}: Healed ${Math.abs(amount)}!`;
+
+    if (mode === "attack") {
+        if (missed) {
+            return `${name}: (${armorClass}) >= ${attackRoll}; Took 0 damage.`;
+        }
+        return `${name}: (${armorClass}) < ${attackRoll}; Took ${amount} damage.`;
+    }
+
+    const saveLabel = saved ? "Saved" : "Failed";
+    const comparison = saveTotal >= dc ? ">=" : "<";
+    let text = `${name}: ${saveLabel} (${ABILITIES[ability]}: ${saveTotal}) ${comparison} DC:${dc}`;
+    if (amount > 0) text += `; Took ${amount} damage.`;
+    else text += ".";
+    return text;
 }
 
 function rollD20() {
@@ -366,7 +431,7 @@ export function resolveDefendOutcome({
     halfOnSave,
     traits,
 }) {
-    if (damage > 0 && mode === "attack" && attackRoll <= armorClass) {
+    if (mode === "attack" && attackRoll <= armorClass) {
         return { missed: true, amount: 0, saved: null };
     }
 

@@ -435,7 +435,7 @@ export function setupAttacks() {
                 renderAttackResult(output, result);
                 const sendButton = document.createElement("button");
                 sendButton.type = "button";
-                sendButton.className = "btn btn-sm btn-outline-light mt-2";
+                sendButton.className = "btn btn-sm btn-primary mt-2";
                 sendButton.textContent = "Send to Defend";
                 sendButton.addEventListener("click", () => {
                     const transfer = buildDefendTransfer(result);

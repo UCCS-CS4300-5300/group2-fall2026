@@ -180,8 +180,7 @@ def get_question_vector(message):
 # Basically just do this once and cache the result. This loads the data lazily the first time a rules question is asked
 @lru_cache(maxsize=1)
 def get_data():
-    # TODO: Just using partial file because I haven't had enough free tokens to embed the whole thing yet
-    vectors_dir = DATA_DIR/"embeddings_partial.npy"
+    vectors_dir = DATA_DIR/"embeddings.npy"
     chunks_dir = DATA_DIR/"chunks.json"
 
     # Load vectors as a matrix and normalize it so each vector has magnitude 1
