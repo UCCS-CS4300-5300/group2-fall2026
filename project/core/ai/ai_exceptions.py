@@ -1,0 +1,6 @@
+# Exception for AI parsing to provide information to views
+class ChatError(Exception):
+    def __init__(self, message, status=400):
+        super().__init__(message)
+        self.message = message
+        self.status = status

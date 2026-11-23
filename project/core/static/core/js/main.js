@@ -113,15 +113,17 @@ document.querySelectorAll(".chat-form").forEach((form) => {
             const result = await response.json();
             if (!response.ok) throw new Error(result.error || "The chat request failed.");
 
-            const assistantMessage = document.createElement("p");
+            const assistantMessage = document.createElement("div");
             assistantMessage.className = "chat-message assistant-message";
-            assistantMessage.textContent = result.reply;
+            assistantMessage.innerHTML = DOMPurify.sanitize(marked.parse(result.reply, { breaks: true }));
             messagesEl.append(assistantMessage);
             const history = chatHistories.get(form.dataset.chatType);
             history.push(
                 { role: "user", content: message },
                 { role: "assistant", content: result.reply },
             );
+            // Hard caps history length to 20. I want to say this should be changed in case different models 
+            // can handle different history sizes, but this is fine for now as like a max-limit.
             if (history.length > 20) history.splice(0, history.length - 20);
             input.value = "";
             statusEl.textContent = "";

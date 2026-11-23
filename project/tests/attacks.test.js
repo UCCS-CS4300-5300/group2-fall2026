@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+    buildDefendTransfer,
     formatAttackResult,
     rollAttack,
     splitAttackCount,
@@ -59,6 +60,44 @@ test("keeps save-based actions as a DC and rolls their damage", (t) => {
         className: "attack-damage-total",
     });
     assert.equal(formatAttackResult(result).length, 2);
+});
+
+test("builds a Defend transfer with combined damage and save details", () => {
+    assert.deepEqual(buildDefendTransfer({
+        attackRoll: null,
+        dc: 15,
+        dcType: "DEX",
+        dcSuccess: "half",
+        damageComponents: [],
+        damageTotal: 12,
+    }), {
+        damage: 12,
+        mode: "save",
+        attackRoll: null,
+        dc: 15,
+        dcType: "DEX",
+        dcSuccess: "half",
+        halfOnSave: true,
+    });
+});
+
+test("builds an attack-mode Defend transfer with the final attack roll", () => {
+    assert.deepEqual(buildDefendTransfer({
+        attackRoll: { total: 24 },
+        dc: null,
+        dcType: "",
+        dcSuccess: "",
+        damageComponents: [],
+        damageTotal: 12,
+    }), {
+        damage: 12,
+        mode: "attack",
+        attackRoll: 24,
+        dc: null,
+        dcType: "",
+        dcSuccess: "",
+        halfOnSave: false,
+    });
 });
 
 test("bolds the attack count in a Multiattack description", () => {

@@ -85,34 +85,9 @@ Current HP remains specific to each encounter.
 
 ## AI chats
 
-Install and start [Ollama](https://ollama.com/), then download the models used
-by each chat:
+### Ollama
 
-```bash
-ollama pull qwen3:8b
-ollama pull qwen3:4b
-```
-
-The Python Ollama client is installed with `pip install -r requirements.txt`.
-This is a client library; you still need to install and run the Ollama
-application separately.
-
-The AI DM Co-Pilot uses `qwen3:8b`; the Rules Lawyer uses `qwen3:4b`. Requests
-go through Django to Ollama at `http://127.0.0.1:11434`. Set `OLLAMA_DM_MODEL`
-or `OLLAMA_RULES_MODEL` to override the model for either chat, and set
-`OLLAMA_BASE_URL` if Ollama uses a different address.
-
-The Rules Lawyer only answers from a PDF reference. By default it uses
-`project/local_data/DnD5e_SRD.pdf`, which is included in the local project
-setup. It retrieves relevant text from the PDF, asks the model to cite the PDF
-page for rules claims, and declines to make a ruling if it finds no relevant
-text.
-
-Chat history is held in the page and is cleared when it is reloaded. The two
-chat tabs use separate histories and prompts. Ollama must be running while you
-use either chat.
-
-## AI chats
+Set `AI_BACKEND` setting in settings.py to "ollama" to use this AI backend.
 
 Install and start [Ollama](https://ollama.com/), then download the models used
 by each chat:
@@ -140,6 +115,10 @@ text.
 Chat history is held in the page and is cleared when it is reloaded. The two
 chat tabs use separate histories and prompts. Ollama must be running while you
 use either chat.
+
+### Gemini
+Set `AI_BACKEND` setting in settings.py to "gemini" to use this AI backend, and add
+`GEMINI_API_KEY=<key>` to your environment variables.
 
 ## Tests
 
@@ -157,10 +136,13 @@ card positions, and separate character state between encounters.
 GitHub Actions runs both test suites, Django checks, and migrations on pull requests
 and pushes to main. The workflow is in `.github/workflows/tests.yml`.
 
-## Current limits
+## Attack and Defend
 
-Attack is still a placeholder. Bootstrap loads from a CDN, so the styling and
-modals need an internet connection.
+The Attack modal can roll encounter creatures' attacks and send a rolled attack
+to the Defend modal. Multiple damage components are combined into one damage
+total. Attack rolls open Defend in attack-roll mode; save-DC actions open it in
+saving-throw mode with the DC, ability, and half-damage setting prefilled.
+Bootstrap loads from a CDN, so the styling and modals need an internet connection.
 
 ## Development notes
 

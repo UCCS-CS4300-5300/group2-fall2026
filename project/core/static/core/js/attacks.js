@@ -431,10 +431,23 @@ export function setupAttacks() {
         for (const choice of choices) {
             const output = choice.closest(".list-group-item").querySelector(".attack-result");
             try {
-                renderAttackResult(
-                    output,
-                    rollAttack(choice.attackData, attackModes.get(choice.dataset.key)),
-                );
+                const result = rollAttack(choice.attackData, attackModes.get(choice.dataset.key));
+                renderAttackResult(output, result);
+                const sendButton = document.createElement("button");
+                sendButton.type = "button";
+                sendButton.className = "btn btn-sm btn-outline-light mt-2";
+                sendButton.textContent = "Send to Defend";
+                sendButton.addEventListener("click", () => {
+                    const transfer = buildDefendTransfer(result);
+                    document.dispatchEvent(new CustomEvent("attack:send-to-defend", {
+                        detail: transfer,
+                    }));
+                    bootstrap.Modal.getOrCreateInstance(modal).hide();
+                    bootstrap.Modal.getOrCreateInstance(
+                        document.getElementById("defendModal"),
+                    ).show();
+                });
+                output.append(sendButton);
                 output.classList.remove("text-danger");
             } catch (error) {
                 output.textContent = `Could not roll this attack: ${error.message || "invalid attack data"}`;
@@ -467,6 +480,18 @@ export function setupAttacks() {
         });
     });
     updateControls();
+}
+
+export function buildDefendTransfer(result) {
+    return {
+        damage: result.damageTotal,
+        mode: result.dc !== null && result.dc !== undefined ? "save" : "attack",
+        attackRoll: result.attackRoll?.total ?? null,
+        dc: result.dc ?? null,
+        dcType: result.dcType || "",
+        dcSuccess: result.dcSuccess || "",
+        halfOnSave: result.dcSuccess === "half",
+    };
 }
 
 export function formatAttackResult(result) {

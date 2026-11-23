@@ -25,4 +25,4 @@ def chat(request):
         return JsonResponse({"error": str(e)}, status=e.status)
 
     # No error, return reply
-    return JsonResponse({"reply": reply})
+    return JsonResponse({"reply": reply.strip()})

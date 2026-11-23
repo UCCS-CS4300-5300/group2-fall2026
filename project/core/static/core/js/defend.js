@@ -12,6 +12,15 @@ const EXCLUSIVE_TRAIT_GROUPS = [
     ["advantage", "disadvantage"],
 ];
 
+const SAVE_ABILITIES = {
+    STR: "strength",
+    DEX: "dexterity",
+    CON: "constitution",
+    INT: "intelligence",
+    WIS: "wisdom",
+    CHA: "charisma",
+};
+
 export function setupDefend() {
     const form = document.getElementById("defendForm");
     const board = document.getElementById("board");
@@ -28,6 +37,34 @@ export function setupDefend() {
     const dcInput = document.getElementById("defendDc");
     const damageInput = document.getElementById("defendDamage");
     const selectedTargets = new Map();
+
+    document.addEventListener("attack:send-to-defend", (event) => {
+        const transfer = event.detail;
+        if (!transfer) return;
+
+        damageInput.value = String(transfer.damage ?? 0);
+        const modeInput = form.querySelector(
+            `input[name="defendMode"][value="${transfer.mode === "save" ? "save" : "attack"}"]`,
+        );
+        if (modeInput) modeInput.checked = true;
+
+        if (transfer.mode === "save") {
+            dcInput.value = transfer.dc === null ? "" : String(transfer.dc);
+            const abilityInput = form.querySelector(
+                `input[name="saveAbility"][value="${SAVE_ABILITIES[transfer.dcType] || ""}"]`,
+            );
+            if (abilityInput) abilityInput.checked = true;
+            document.getElementById("halfDamageOnSave").checked = Boolean(transfer.halfOnSave);
+        } else {
+            attackRollInput.value = transfer.attackRoll === null
+                ? ""
+                : String(transfer.attackRoll);
+        }
+
+        status.classList.remove("text-danger");
+        status.textContent = "";
+        updateControls();
+    });
 
     function syncTargetOptions() {
         const cards = [...board.querySelectorAll(".combatant")];
