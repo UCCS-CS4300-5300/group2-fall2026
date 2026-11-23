@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
     enforceExclusiveTraitSelection,
+    formatDefendOutcome,
     resolveDefendOutcome,
     rollSavingThrowD20,
 } from "../core/static/core/js/defend.js";
@@ -78,6 +79,66 @@ test("attack misses do not apply damage", () => {
         amount: 0,
         saved: null,
     });
+});
+
+test("attack equal to armor class misses", () => {
+    assert.deepEqual(outcome({ attackRoll: 15 }), {
+        missed: true,
+        amount: 0,
+        saved: null,
+    });
+});
+
+test("attack above armor class hits", () => {
+    assert.deepEqual(outcome({ attackRoll: 16 }), {
+        missed: false,
+        amount: 20,
+        saved: null,
+    });
+});
+
+test("formats attack, save, and healing results", () => {
+    assert.equal(formatDefendOutcome({
+        name: "Goblin",
+        amount: 5,
+        mode: "attack",
+        attackRoll: 16,
+        armorClass: 15,
+    }), "Goblin: (15) < 16; Took 5 damage.");
+
+    assert.equal(formatDefendOutcome({
+        name: "Tarrasque",
+        mode: "attack",
+        attackRoll: 20,
+        armorClass: 25,
+        missed: true,
+    }), "Tarrasque: (25) >= 20; Took 0 damage.");
+
+    assert.equal(formatDefendOutcome({
+        name: "Goblin",
+        amount: 0,
+        mode: "save",
+        saved: true,
+        saveTotal: 17,
+        dc: 15,
+        ability: "wisdom",
+    }), "Goblin: Saved (WIS: 17) >= DC:15.");
+
+    assert.equal(formatDefendOutcome({
+        name: "Goblin",
+        amount: 4,
+        mode: "save",
+        saved: false,
+        saveTotal: 12,
+        dc: 15,
+        ability: "dexterity",
+    }), "Goblin: Failed (DEX: 12) < DC:15; Took 4 damage.");
+
+    assert.equal(formatDefendOutcome({
+        name: "Goblin",
+        amount: -5,
+        mode: "save",
+    }), "Goblin: Healed 5!");
 });
 
 test("saving throw success, half damage, and failure produce the expected damage", () => {

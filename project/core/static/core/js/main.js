@@ -8,6 +8,7 @@ import { setupEditableHp } from "./editable_hp.js";
 import { setupEditableCharacterFields } from "./editable_character.js";
 import { setupInitiativeRoller } from "./initiative_roller.js";
 import { setupDefend } from "./defend.js";
+import { setupAttacks } from "./attacks.js";
 import { setupSavingThrowRoller } from "./saving_throws.js";
 import { setupClearEncounter } from "./clear_encounter.js";
 import { setupRemoveCombatant } from "./remove_combatant.js";
@@ -25,6 +26,7 @@ setupInitiativeRoller()
 setupClearEncounter()
 setupRemoveCombatant()
 setupDefend()
+setupAttacks()
 setupSavingThrowRoller()
 
 //Logic for adding new combatant with the "addForm" element on the home template.

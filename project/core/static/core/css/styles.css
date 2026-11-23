@@ -417,6 +417,33 @@ h5,
   margin: 0;
   white-space: nowrap;
 }
+
+.attack-roll-total,
+.attack-damage-total,
+.attack-die-used {
+  font-weight: 700;
+}
+
+.attack-roll-total {
+  color: var(--brass);
+}
+
+.attack-damage-total {
+  color: var(--blood);
+}
+
+.defend-outcome-gold {
+  color: var(--brass);
+}
+
+.defend-outcome-red {
+  color: var(--blood);
+}
+
+.defend-outcome-blue {
+  color: #78a9ff;
+}
+
 .dashboard {
   flex: 1;
   min-height: 0;
